@@ -2,10 +2,13 @@ name = "easyorder-ai"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# Optional: pin a different Fireworks model without editing code.
-# [vars]
-# FIREWORKS_MODEL = "accounts/fireworks/models/llama-v3p3-70b-instruct"
+# Provider config — these are the exact values we verified live on OpenRouter.
+[vars]
+LLM_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+LLM_MODEL = "meta-llama/llama-3.3-70b-instruct"
 
-# The API key is a SECRET, not a var. Set it once with:
-#   wrangler secret put FIREWORKS_API_KEY
-# (Never commit the key to git.)
+# The API key is a SECRET, never a var. Set it once (paste your OpenRouter sk-or-v1-… key):
+#   wrangler secret put LLM_API_KEY
+#
+# To use Fireworks instead: delete the [vars] block above (the worker then defaults to
+# Fireworks) and put your Fireworks key in the same LLM_API_KEY secret.

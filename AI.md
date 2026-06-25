@@ -40,16 +40,17 @@ spend limit** = `$10` (and the worker already clamps tokens per request).
 ### 2. Deploy the proxy (Cloudflare Workers, free tier)
 ```bash
 npm install -g wrangler
-wrangler login
+wrangler login                      # opens a browser to authorize your Cloudflare account
 cd proxy
-wrangler secret put FIREWORKS_API_KEY     # paste your fw_… key when prompted
-```
-Edit `proxy/worker.js` → `ALLOWED_ORIGINS` so it lists your GitHub Pages URL
-(e.g. `https://alisworker1-hash.github.io`). Then:
-```bash
+wrangler secret put LLM_API_KEY     # paste your OpenRouter sk-or-v1-… key when prompted
 wrangler deploy
 ```
-Wrangler prints a URL like `https://easyorder-ai.<your-subdomain>.workers.dev`.
+`proxy/wrangler.toml` is already pre-configured for **OpenRouter + Llama 3.3 70B** (the
+combo we verified live). `proxy/worker.js` → `ALLOWED_ORIGINS` already lists the GitHub
+Pages URL. Wrangler prints a URL like `https://easyorder-ai.<your-subdomain>.workers.dev`.
+
+> Prefer Fireworks once its payment method verifies? Delete the `[vars]` block in
+> `wrangler.toml`, put your `fw_…` key in the same `LLM_API_KEY` secret, and redeploy.
 
 ### 3. Point the site at the proxy
 In `data.json`:

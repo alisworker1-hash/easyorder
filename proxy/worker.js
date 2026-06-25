@@ -1,25 +1,26 @@
-/* EasyOrder ↔ Fireworks AI proxy (Cloudflare Worker).
+/* EasyOrder ↔ LLM proxy (Cloudflare Worker) — provider-agnostic.
  *
  * Why this exists: the EasyOrder site is static (GitHub Pages), so it CANNOT hold the
- * Fireworks API key — anyone could read it in the browser and drain your credit. This
- * tiny worker keeps the key as a server-side secret and forwards chat requests to
- * Fireworks. Your prepaid Fireworks credit is a hard cap (set a $10 spend limit in the
- * Fireworks dashboard) — it can never overspend that.
+ * API key — anyone could read it in the browser and drain your credit. This tiny worker
+ * keeps the key as a server-side secret and forwards OpenAI-compatible chat requests to
+ * whichever provider you configure. Your prepaid credit is a hard cap.
  *
- * Deploy (one time, ~5 min):
- *   1. npm i -g wrangler && wrangler login
- *   2. cd proxy && wrangler secret put FIREWORKS_API_KEY   (paste your Fireworks key)
- *   3. Edit ALLOWED_ORIGINS below to include your GitHub Pages URL.
- *   4. wrangler deploy
- *   5. Put the deployed URL (……workers.dev) into data.json -> meta.assistantProxyUrl
+ * Configure (wrangler.toml [vars] + one secret):
+ *   secret  LLM_API_KEY     your provider key            (wrangler secret put LLM_API_KEY)
+ *   var     LLM_ENDPOINT    chat-completions URL          (default: Fireworks)
+ *   var     LLM_MODEL       force this model id           (optional; else client's model)
  *
- * Full walkthrough: see AI.md.
+ * OpenRouter (what we tested live):
+ *   LLM_ENDPOINT = https://openrouter.ai/api/v1/chat/completions
+ *   LLM_MODEL    = meta-llama/llama-3.3-70b-instruct
+ *   LLM_API_KEY  = sk-or-v1-…              (as a secret)
+ *
+ * Deploy: see AI.md. After deploy, put the worker URL in data.json -> meta.assistantProxyUrl.
  */
 
-const FIREWORKS_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
+const DEFAULT_ENDPOINT = "https://api.fireworks.ai/inference/v1/chat/completions";
 const DEFAULT_MODEL = "accounts/fireworks/models/llama-v3p3-70b-instruct";
 
-// Only these origins may call the proxy. Add your real GitHub Pages origin.
 const ALLOWED_ORIGINS = [
   "https://alisworker1-hash.github.io",
   "http://localhost:8042",
@@ -39,16 +40,17 @@ export default {
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (request.method !== "POST") return j({ error: "POST only" }, 405, cors);
-    if (!env.FIREWORKS_API_KEY) return j({ error: "server not configured: set FIREWORKS_API_KEY" }, 500, cors);
+
+    const KEY = env.LLM_API_KEY || env.FIREWORKS_API_KEY;
+    if (!KEY) return j({ error: "server not configured: set the LLM_API_KEY secret" }, 500, cors);
 
     let body;
     try { body = await request.json(); } catch { return j({ error: "invalid JSON" }, 400, cors); }
     if (!Array.isArray(body.messages)) return j({ error: "messages[] required" }, 400, cors);
 
-    // Build a clamped request — we control the limits, not the client.
     const payload = {
-      model: body.model || env.FIREWORKS_MODEL || DEFAULT_MODEL,
-      messages: body.messages.slice(-24),            // cap conversation length
+      model: env.LLM_MODEL || body.model || DEFAULT_MODEL,
+      messages: body.messages.slice(-24),
       max_tokens: Math.min(Number(body.max_tokens) || 700, 1024),
       temperature: Math.min(Math.max(Number(body.temperature ?? 0.3), 0), 1),
     };
@@ -56,9 +58,14 @@ export default {
 
     let upstream;
     try {
-      upstream = await fetch(FIREWORKS_URL, {
+      upstream = await fetch(env.LLM_ENDPOINT || DEFAULT_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.FIREWORKS_API_KEY}` },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${KEY}`,
+          "HTTP-Referer": "https://alisworker1-hash.github.io/easyorder/",
+          "X-Title": "EasyOrder",
+        },
         body: JSON.stringify(payload),
       });
     } catch (e) {
