@@ -26,8 +26,10 @@ A static GitHub Pages site can't keep a secret — anything in the page is reada
 Putting the Fireworks key in the browser would let strangers spend your credit. The worker
 keeps the key safe and only forwards chat requests from your own site's origin.
 
-Your **$30 Fireworks balance is prepaid credit**, so spending can never exceed it. A typical
-shopping conversation costs a fraction of a cent, so $30 is thousands of conversations.
+Your Fireworks balance is **prepaid credit**, so spending can never exceed what you've added.
+A typical shopping conversation costs a fraction of a cent, so even **$10 is thousands of
+conversations**. To be doubly safe, set a hard cap in Fireworks → **Settings → Billing →
+spend limit** = `$10` (and the worker already clamps tokens per request).
 
 ## Go live in ~5 minutes
 

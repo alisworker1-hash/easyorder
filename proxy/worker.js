@@ -3,7 +3,8 @@
  * Why this exists: the EasyOrder site is static (GitHub Pages), so it CANNOT hold the
  * Fireworks API key — anyone could read it in the browser and drain your credit. This
  * tiny worker keeps the key as a server-side secret and forwards chat requests to
- * Fireworks. Your $30 is prepaid credit, so it can never overspend that.
+ * Fireworks. Your prepaid Fireworks credit is a hard cap (set a $10 spend limit in the
+ * Fireworks dashboard) — it can never overspend that.
  *
  * Deploy (one time, ~5 min):
  *   1. npm i -g wrangler && wrangler login
