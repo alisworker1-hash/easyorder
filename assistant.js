@@ -1,26 +1,16 @@
-/* EasyOrder — "Ask EasyOrder" AI shopping assistant.
-   Grounded in the real catalog (so prices are never invented) and able to act on the
-   cart through function-calling tools. Two modes, chosen by data.json meta.assistantProxyUrl:
-     - empty  -> grounded DEMO mode (rule-based, works offline, no key needed)
-     - set    -> LIVE mode: chat goes through your serverless proxy to Fireworks AI
-   It reuses the globals defined in app.js: DATA, PRODUCTS, addToCart, openCart,
-   cartItems, cartTotal, money, history. assistant.js must load AFTER app.js. */
+/* EasyOrder — the inline "EasyOrder Helper" chat (ChatGPT-style, on the homepage).
+   Grounded in the real catalog and able to act on the cart via function-calling tools.
+   Two modes via data.json meta.assistantProxyUrl: empty = grounded DEMO, set = LIVE (Fireworks).
+   Renders rich inline product cards (image, exact price, Add button). Loads AFTER app.js. */
 
 (function () {
   "use strict";
 
-  const A = {
-    open: false,
-    convo: [],          // chat history for the model (system + turns)
-    busy: false,
-    started: false,
-  };
-
+  const A = { convo: [], busy: false, started: false };
   const el = (id) => document.getElementById(id);
-  // app.js declares `DATA` with `let` (global lexical scope) — reachable here by bare name,
-  // but NOT as a property of window, so always reference `DATA`, never `window.DATA`.
   const cfg = () => (DATA && DATA.meta) || {};
   const live = () => !!cfg().assistantProxyUrl;
+  const ready = () => DATA && DATA.products && DATA.products.length;
 
   /* ---------- catalog grounding ---------- */
   function catalogText() {
@@ -31,214 +21,218 @@
   }
   function systemPrompt() {
     return [
-      "You are the EasyOrder shopping assistant. You help people — especially older adults —",
-      "reorder home essentials. Be warm, calm, and brief. Use short, plain sentences.",
+      "You are the EasyOrder Helper. You help people — especially older adults — reorder home",
+      "essentials. Be warm, calm and brief. Use short, plain sentences.",
       "",
       "You may ONLY recommend items from the catalog below. Never invent items or prices.",
-      "Always quote the EXACT price shown. If an item's stock is 'out', say so and do not add it.",
-      "When the shopper wants items, call add_to_cart with the exact ids and confirm what you",
-      "added and the running total. To review or pay, call open_cart — the shopper taps",
-      "'Pay with Apple Pay' themselves; never claim you charged them. Keep replies to 1–3 sentences.",
+      "Always quote the EXACT price shown. If an item's stock is 'out', say so and don't add it.",
+      "When the shopper wants items, call add_to_cart with the exact ids and confirm what you added",
+      "and the running total. To review or pay, call open_cart — the shopper taps 'Pay with Apple",
+      "Pay' themselves; never claim you charged them. Keep replies to 1–3 short sentences.",
       "",
       "CATALOG (id | name | unit | price | stock):",
       catalogText(),
     ].join("\n");
   }
 
-  /* ---------- tool schemas (OpenAI / Fireworks format) ---------- */
   const TOOLS = [
-    { type: "function", function: { name: "add_to_cart",
-      description: "Add one or more catalog items to the shopper's cart.",
-      parameters: { type: "object", properties: { items: { type: "array", items: {
-        type: "object", properties: { id: { type: "string" }, qty: { type: "integer", minimum: 1 } },
-        required: ["id"] } } }, required: ["items"] } } },
-    { type: "function", function: { name: "search_catalog",
-      description: "Find catalog items matching a search term (name, brand or category).",
+    { type: "function", function: { name: "add_to_cart", description: "Add one or more catalog items to the cart.",
+      parameters: { type: "object", properties: { items: { type: "array", items: { type: "object",
+        properties: { id: { type: "string" }, qty: { type: "integer", minimum: 1 } }, required: ["id"] } } }, required: ["items"] } } },
+    { type: "function", function: { name: "search_catalog", description: "Find catalog items matching a search term.",
       parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
-    { type: "function", function: { name: "view_cart",
-      description: "Get the shopper's current cart contents and total.",
+    { type: "function", function: { name: "view_cart", description: "Get the current cart contents and total.",
       parameters: { type: "object", properties: {} } } },
-    { type: "function", function: { name: "open_cart",
-      description: "Open the cart drawer so the shopper can review and pay with Apple Pay.",
+    { type: "function", function: { name: "open_cart", description: "Open the cart so the shopper can review and pay.",
       parameters: { type: "object", properties: {} } } },
   ];
 
-  /* ---------- tool executors (authoritative — real prices from data.json) ---------- */
   function searchCatalog(query) {
-    const q = String(query || "").toLowerCase();
-    const words = q.split(/\s+/).filter(Boolean);
+    const words = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
     return DATA.products.filter((p) => {
       const hay = (p.name + " " + p.brand + " " + p.category).toLowerCase();
       return words.some((w) => hay.includes(w));
-    }).slice(0, 6).map((p) => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, stock: p.stock }));
+    });
   }
+
+  /* tool executors — authoritative, real prices. Returns ids surfaced (for inline cards). */
+  let surfaced = [];
   function runTool(name, args) {
     if (name === "add_to_cart") {
-      const added = [], skipped = [];
+      const added = [];
       (args.items || []).forEach((it) => {
         const p = PRODUCTS[it.id];
-        if (!p) { skipped.push({ id: it.id, reason: "not found" }); return; }
-        if (p.stock === "out") { skipped.push({ id: it.id, reason: "out of stock" }); return; }
+        if (!p || p.stock === "out") return;
         const qty = Math.max(1, parseInt(it.qty, 10) || 1);
-        addToCart(it.id, qty);
-        added.push({ id: p.id, name: p.name, qty, price: p.price });
+        addToCart(it.id, qty); added.push(p.id); surfaced.push(p.id);
       });
-      return { added, skipped, cartTotal: Number(cartTotal().toFixed(2)) };
+      return { added: added.map((id) => ({ id, name: PRODUCTS[id].name, price: PRODUCTS[id].price })),
+               cartTotal: Number(cartTotal().toFixed(2)) };
     }
-    if (name === "search_catalog") return { results: searchCatalog(args.query) };
-    if (name === "view_cart") {
-      return { items: cartItems().map((p) => ({ id: p.id, name: p.name, qty: p.qty, price: p.price })),
-               total: Number(cartTotal().toFixed(2)) };
+    if (name === "search_catalog") {
+      const r = searchCatalog(args.query).slice(0, 6);
+      r.forEach((p) => surfaced.push(p.id));
+      return { results: r.map((p) => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, stock: p.stock })) };
     }
+    if (name === "view_cart") return { items: cartItems().map((p) => ({ id: p.id, name: p.name, qty: p.qty, price: p.price })), total: Number(cartTotal().toFixed(2)) };
     if (name === "open_cart") { openCart(); return { opened: true }; }
     return { error: "unknown tool" };
   }
 
-  /* ---------- live mode: tool-calling loop via the proxy ---------- */
+  /* ---------- live: tool-calling loop ---------- */
   async function liveTurn() {
+    surfaced = [];
     let guard = 0;
     while (guard++ < 4) {
-      const res = await fetch(cfg().assistantProxyUrl, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: cfg().assistantModel, messages: A.convo, tools: TOOLS, tool_choice: "auto" }),
-      });
-      if (!res.ok) throw new Error("assistant service error " + res.status);
+      const res = await fetch(cfg().assistantProxyUrl, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: cfg().assistantModel, messages: A.convo, tools: TOOLS, tool_choice: "auto" }) });
+      if (!res.ok) throw new Error("assistant service " + res.status);
       const data = await res.json();
       const msg = data.choices && data.choices[0] && data.choices[0].message;
-      if (!msg) throw new Error("no reply from assistant");
+      if (!msg) throw new Error("no reply");
       A.convo.push(msg);
       if (msg.tool_calls && msg.tool_calls.length) {
         for (const tc of msg.tool_calls) {
-          let parsed = {};
-          try { parsed = JSON.parse(tc.function.arguments || "{}"); } catch {}
-          const result = runTool(tc.function.name, parsed);
-          A.convo.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result) });
+          let parsed = {}; try { parsed = JSON.parse(tc.function.arguments || "{}"); } catch {}
+          A.convo.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(runTool(tc.function.name, parsed)) });
         }
-        continue; // let the model respond to the tool results
+        continue;
       }
-      return msg.content || "Okay.";
+      return { text: msg.content || "Okay.", ids: [...new Set(surfaced)] };
     }
-    return "Let's keep going — what would you like to order?";
+    return { text: "Let's keep going — what would you like to order?", ids: [...new Set(surfaced)] };
   }
 
-  /* ---------- demo mode: grounded, rule-based (no key needed) ---------- */
+  /* ---------- demo: grounded, rule-based ---------- */
+  function dueReorderIds() {
+    const h = safeHistory();
+    return Object.keys(h).filter((id) => {
+      const p = PRODUCTS[id];
+      return p && p.reorderDays > 0 && !cart[id] && daysSince(h[id]) >= p.reorderDays;
+    });
+  }
   function demoTurn(text) {
     const t = text.toLowerCase();
-    // reorder usuals — pull from purchase history, else common staples
-    if (/\b(usual|usuals|reorder|again|restock|low|out)\b/.test(t)) {
-      const hist = safeHistory();
-      let ids = Object.keys(hist).filter((id) => PRODUCTS[id] && PRODUCTS[id].stock !== "out");
+    if (/\b(usual|usuals|reorder|again|restock)\b/.test(t)) {
+      let ids = dueReorderIds();
+      if (!ids.length) ids = Object.keys(safeHistory()).filter((id) => PRODUCTS[id]);
       if (!ids.length) ids = ["milk-2pct-gal", "bread-whole-wheat", "eggs-large-dozen"].filter((id) => PRODUCTS[id]);
-      ids = ids.slice(0, 4);
-      if (ids.length) {
-        ids.forEach((id) => addToCart(id, 1));
-        const names = ids.map((id) => PRODUCTS[id].name).join(", ");
-        const sum = ids.reduce((a, id) => a + PRODUCTS[id].price, 0);
-        return `I added your usual items: ${names}. That's ${money(sum)} so far. Want to review your cart?`;
-      }
+      ids = ids.slice(0, 4).filter((id) => PRODUCTS[id].stock !== "out");
+      ids.forEach((id) => addToCart(id, 1));
+      const sum = ids.reduce((a, id) => a + PRODUCTS[id].price, 0);
+      return { text: `Done! I added your usual items — that's ${money(sum)} so far. Tap a price if you'd like more, or say "checkout" when ready.`, ids };
     }
-    // on sale
-    if (/\b(sale|deal|deals|cheaper|discount|save|saving|on sale)\b/.test(t)) {
-      const drops = DATA.products.filter((p) => p.priceWas && p.price < p.priceWas).slice(0, 4);
-      if (drops.length) return `On sale right now: ${drops.map((p) => `${p.name} ${money(p.price)} (was ${money(p.priceWas)})`).join("; ")}. Want me to add any?`;
+    if (/\b(sale|deal|deals|cheaper|discount|save|saving)\b/.test(t)) {
+      const ids = DATA.products.filter((p) => p.priceWas && p.price < p.priceWas)
+        .sort((a, b) => (b.priceWas - b.price) - (a.priceWas - a.price)).slice(0, 4).map((p) => p.id);
+      if (ids.length) return { text: `Here's what dropped in price today — want me to add any?`, ids };
     }
-    // cart / pay
     if (/\b(cart|checkout|check out|pay|buy now|place order)\b/.test(t)) {
-      openCart();
-      return "I've opened your cart — tap 'Pay with Apple Pay' when you're ready.";
+      openCart(); return { text: "I've opened your cart — tap 'Pay with Apple Pay' when you're ready.", ids: [] };
     }
-    // explicit add
-    const addMatch = t.match(/\badd\b\s+(.*)/);
+    const addMatch = t.match(/\b(add|need|want|buy|get)\b\s+(.*)/);
     if (addMatch) {
-      const hits = searchCatalog(addMatch[1]);
-      const usable = hits.filter((h) => h.stock !== "out");
-      if (usable.length) {
-        addToCart(usable[0].id, 1);
-        return `Added ${usable[0].name} (${money(usable[0].price)}) to your cart. Anything else?`;
+      const hits = searchCatalog(addMatch[2]).filter((p) => p.stock !== "out");
+      if (hits.length) {
+        addToCart(hits[0].id, 1);
+        const extra = hits.slice(1, 4).map((p) => p.id);
+        return { text: `Added ${hits[0].name} (${money(hits[0].price)}). ${extra.length ? "Here are a few more you might want:" : "Anything else?"}`, ids: [hits[0].id, ...extra] };
       }
     }
-    // keyword search
-    const matches = searchCatalog(t);
-    if (matches.length) {
-      return `I found: ${matches.map((p) => `${p.name} ${money(p.price)}${p.stock === "out" ? " (out of stock)" : ""}`).join("; ")}. Say "add ${matches[0].name}" and I'll put it in your cart.`;
-    }
-    return "I can help you reorder groceries, household items, personal care or health supplies. Try “reorder my usuals”, “what's on sale?”, or “add milk”.";
+    const matches = searchCatalog(t).slice(0, 4);
+    if (matches.length) return { text: `Here's what I found — tap "Add" on anything you'd like:`, ids: matches.map((p) => p.id) };
+    return { text: "I can help you reorder groceries, household items, personal care or health supplies. Try “reorder my usuals”, “what's on sale?”, or “I need milk and bread”.", ids: [] };
   }
-  function safeHistory() {
-    try { return JSON.parse(localStorage.getItem("eo.history") || "{}"); } catch { return {}; }
-  }
+  function safeHistory() { try { return JSON.parse(localStorage.getItem("eo.history") || "{}"); } catch { return {}; } }
 
-  /* ---------- UI ---------- */
-  function bubble(role, text) {
-    const wrap = document.createElement("div");
-    wrap.className = "a-msg a-" + role;
-    wrap.textContent = text;
-    el("assistantMsgs").appendChild(wrap);
-    el("assistantMsgs").scrollTop = el("assistantMsgs").scrollHeight;
-    return wrap;
+  /* ---------- rendering ---------- */
+  function scrollDown() { const m = el("chatMessages"); m.scrollTop = m.scrollHeight; }
+  function userMsg(text) {
+    const d = document.createElement("div"); d.className = "c-msg c-user"; d.textContent = text;
+    el("chatMessages").appendChild(d); scrollDown();
+  }
+  function productCardsHTML(ids) {
+    const list = [...new Set(ids)].map((id) => PRODUCTS[id]).filter(Boolean);
+    if (!list.length) return "";
+    return `<div class="c-prods">` + list.map((p) => {
+      const img = p.image ? `<img class="c-prod-img" src="${p.image}" alt="" onerror="this.outerHTML='<span class=&quot;c-prod-img&quot;>${p.emoji || "📦"}</span>'">`
+                          : `<span class="c-prod-img">${p.emoji || "📦"}</span>`;
+      const out = p.stock === "out";
+      return `<div class="c-prod">${img}
+        <div class="c-prod-info"><div class="c-prod-name">${esc(p.name)}</div>
+          <div class="c-prod-meta">${esc(p.unit)} · <span class="c-prod-price">${money(p.price)}</span></div></div>
+        <button class="c-prod-add" data-add-chat="${esc(p.id)}" ${out ? "disabled" : ""}>${out ? "Out" : "Add"}</button></div>`;
+    }).join("") + `</div>`;
+  }
+  function botMsg(text, ids) {
+    const d = document.createElement("div"); d.className = "c-msg c-bot";
+    d.innerHTML = esc(text) + (ids && ids.length ? productCardsHTML(ids) : "");
+    el("chatMessages").appendChild(d); scrollDown();
   }
   function typing(on) {
-    let t = el("aTyping");
-    if (on && !t) { t = bubble("bot", "…"); t.id = "aTyping"; }
+    let t = el("cTyping");
+    if (on && !t) { t = document.createElement("div"); t.id = "cTyping"; t.className = "c-msg c-bot c-typing"; t.innerHTML = "<i></i><i></i><i></i>"; el("chatMessages").appendChild(t); scrollDown(); }
     else if (!on && t) t.remove();
+  }
+  function renderSuggestions() {
+    const chips = [
+      { icon: "🔁", b: "Reorder my usuals", s: "Your regular items", q: "reorder my usuals" },
+      { icon: "🏷️", b: "What's on sale?", s: "Today's price drops", q: "what's on sale?" },
+      { icon: "🧴", b: "I'm low on cleaning", s: "Household supplies", q: "I need cleaning supplies" },
+      { icon: "🛒", b: "Help me shop", s: "Not sure where to start", q: "help me shop for groceries" },
+    ];
+    el("chatSuggestions").innerHTML = chips.map((c) =>
+      `<button type="button" class="c-sug" data-chip="${esc(c.q)}"><span class="c-sug-ico" aria-hidden="true">${c.icon}</span>
+        <span><b>${esc(c.b)}</b><small>${esc(c.s)}</small></span></button>`).join("");
   }
 
   function ensureStarted() {
-    if (A.started) return;
+    if (A.started || !ready()) return;
     A.started = true;
     A.convo = [{ role: "system", content: systemPrompt() }];
-    bubble("bot", live()
-      ? "Hello! I'm your EasyOrder helper. Tell me what you need — for example, “reorder my usuals” or “I'm low on cleaning supplies.”"
-      : "Hello! I'm your EasyOrder helper. Try “reorder my usuals”, “what's on sale?”, or “add milk”.");
-    el("assistantNote").textContent = live() ? "" : "Demo mode — connect Fireworks AI (see AI.md) for full conversation.";
+    botMsg("Hi! I'm your EasyOrder Helper. 👋 Just tell me what you need — like “I need milk and bread” — and I'll find it, show the price, and add it to your cart.", []);
+    const due = dueReorderIds();
+    if (due.length) botMsg(`While you're here — you're about due for ${PRODUCTS[due[0]].name}. Want me to add it?`, [due[0]]);
+    el("chatNote").textContent = live() ? "Ask me anything — I quote real prices and add items for you." : "Demo mode — connect Fireworks AI (see AI.md) for full conversation.";
+    el("chatNote").className = "chat-note" + (live() ? "" : " demo");
     renderSuggestions();
-  }
-  function renderSuggestions() {
-    const chips = ["Reorder my usuals", "What's on sale?", "I'm low on cleaning supplies", "Open my cart"];
-    el("assistantSuggest").innerHTML = chips.map((c) =>
-      `<button type="button" class="a-chip" data-chip="${c.replace(/"/g, "&quot;")}">${c}</button>`).join("");
   }
 
   async function send(text) {
     text = (text || "").trim();
     if (!text || A.busy) return;
-    if (!(DATA && DATA.products && DATA.products.length)) { bubble("bot", "One moment — still loading the store."); return; }
-    bubble("user", text);
-    el("assistantText").value = "";
+    if (!ready()) { botMsg("One moment — still loading the store.", []); return; }
+    userMsg(text); el("chatInput").value = "";
     A.busy = true; typing(true);
     try {
-      let reply;
-      if (live()) { A.convo.push({ role: "user", content: text }); reply = await liveTurn(); }
-      else { reply = demoTurn(text); }
-      typing(false); bubble("bot", reply);
+      const reply = live() ? (A.convo.push({ role: "user", content: text }), await liveTurn()) : demoTurn(text);
+      typing(false); botMsg(reply.text, reply.ids);
     } catch (err) {
       typing(false);
-      bubble("bot", "Sorry — I couldn't reach the assistant just now. " + (live() ? "Check the proxy is deployed (see AI.md)." : ""));
+      botMsg("Sorry — I couldn't reach the assistant just now. " + (live() ? "Check the proxy is deployed (see AI.md)." : ""), []);
     } finally { A.busy = false; }
   }
 
-  function openPanel() {
-    ensureStarted();
-    A.open = true;
-    el("assistant").hidden = false;
-    el("assistantLaunch").setAttribute("aria-expanded", "true");
-    setTimeout(() => el("assistantText").focus(), 0);
-  }
-  function closePanel() {
-    A.open = false;
-    el("assistant").hidden = true;
-    el("assistantLaunch").setAttribute("aria-expanded", "false");
-    el("assistantLaunch").focus();
-  }
-
-  /* ---------- wire up ---------- */
+  /* ---------- events ---------- */
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#assistantLaunch")) { A.open ? closePanel() : openPanel(); return; }
-    if (e.target.closest("#assistantClose")) { closePanel(); return; }
     const chip = e.target.closest("[data-chip]");
     if (chip) { send(chip.dataset.chip); return; }
+    const addc = e.target.closest("[data-add-chat]");
+    if (addc && !addc.disabled) {
+      const p = PRODUCTS[addc.dataset.addChat]; if (!p) return;
+      addToCart(p.id, 1); addc.textContent = "Added ✓"; addc.classList.add("added"); addc.disabled = true; return;
+    }
+    if (e.target.closest("#chatFab")) {
+      document.getElementById("chat").scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => el("chatInput").focus(), 300); return;
+    }
   });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && A.open) closePanel(); });
-  const form = el("assistantForm");
-  if (form) form.addEventListener("submit", (e) => { e.preventDefault(); send(el("assistantText").value); });
+  const form = el("chatForm");
+  if (form) form.addEventListener("submit", (e) => { e.preventDefault(); send(el("chatInput").value); });
+
+  /* start once data.json has loaded (app.js fetches it async) */
+  (function waitData(n) {
+    if (ready()) ensureStarted();
+    else if (n < 80) setTimeout(() => waitData(n + 1), 100);
+  })(0);
 })();
