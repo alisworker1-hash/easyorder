@@ -9,7 +9,16 @@
   const A = { convo: [], busy: false, started: false };
   const el = (id) => document.getElementById(id);
   const cfg = () => (DATA && DATA.meta) || {};
-  const live = () => !!cfg().assistantProxyUrl;
+  // Proxy URL = production config, OR a localhost-only dev override (set via
+  // localStorage 'eo.proxyOverride') so we can test the live AI without editing data.json.
+  const proxyUrl = () => {
+    try {
+      const o = localStorage.getItem("eo.proxyOverride");
+      if (o && /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(o)) return o;
+    } catch {}
+    return cfg().assistantProxyUrl || "";
+  };
+  const live = () => !!proxyUrl();
   const ready = () => DATA && DATA.products && DATA.products.length;
 
   /* ---------- catalog grounding ---------- */
@@ -84,7 +93,7 @@
     surfaced = [];
     let guard = 0;
     while (guard++ < 4) {
-      const res = await fetch(cfg().assistantProxyUrl, { method: "POST", headers: { "Content-Type": "application/json" },
+      const res = await fetch(proxyUrl(), { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: cfg().assistantModel, messages: A.convo, tools: TOOLS, tool_choice: "auto" }) });
       if (!res.ok) throw new Error("assistant service " + res.status);
       const data = await res.json();
