@@ -1,0 +1,11 @@
+name = "easyorder-ai"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Optional: pin a different Fireworks model without editing code.
+# [vars]
+# FIREWORKS_MODEL = "accounts/fireworks/models/llama-v3p3-70b-instruct"
+
+# The API key is a SECRET, not a var. Set it once with:
+#   wrangler secret put FIREWORKS_API_KEY
+# (Never commit the key to git.)

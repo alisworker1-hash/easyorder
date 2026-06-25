@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "brand": "EasyOrder",
+    "tagline": "Home essentials, reordered the easy way.",
+    "updated": "2026-06-24",
+    "currency": "USD",
+    "freeDeliveryOver": 35,
+    "deliveryFee": 4.99,
+    "monthlyBudgetDefault": 250,
+    "stripePublishableKey": "",
+    "assistantProxyUrl": "",
+    "assistantModel": "accounts/fireworks/models/llama-v3p3-70b-instruct"
+  },
+  "categories": [
+    { "id": "grocery", "label": "Groceries", "icon": "🛒" },
+    { "id": "household", "label": "Household", "icon": "🧻" },
+    { "id": "personal", "label": "Personal Care", "icon": "🧼" },
+    { "id": "health", "label": "Health & Mobility", "icon": "💊" }
+  ],
+  "products": [
+    { "id": "milk-2pct-gal", "name": "2% Milk", "brand": "Meadow Fresh", "category": "grocery", "unit": "1 gallon (3.78 L)", "price": 3.79, "priceWas": 3.49, "emoji": "🥛", "image": "", "stock": "in", "stockNote": "", "reorderDays": 7, "deliveryNote": "", "popular": true },
+    { "id": "eggs-large-dozen", "name": "Large Eggs", "brand": "Sunny Acres", "category": "grocery", "unit": "Dozen", "price": 4.29, "priceWas": 4.59, "emoji": "🥚", "image": "", "stock": "low", "stockNote": "Only 4 left", "reorderDays": 10, "deliveryNote": "", "popular": true },
+    { "id": "bread-whole-wheat", "name": "Whole Wheat Bread", "brand": "Stone Mill", "category": "grocery", "unit": "1 loaf (24 oz)", "price": 2.99, "emoji": "🍞", "image": "", "stock": "in", "stockNote": "", "reorderDays": 7, "deliveryNote": "", "popular": true },
+    { "id": "bananas-bunch", "name": "Bananas", "brand": "Fresh Pick", "category": "grocery", "unit": "Bunch (about 5)", "price": 1.69, "emoji": "🍌", "image": "", "stock": "in", "stockNote": "", "reorderDays": 7, "deliveryNote": "", "popular": true },
+    { "id": "coffee-ground", "name": "Ground Coffee", "brand": "Morning Roast", "category": "grocery", "unit": "12 oz", "price": 8.49, "priceWas": 9.29, "emoji": "☕", "image": "", "stock": "in", "stockNote": "", "reorderDays": 21, "deliveryNote": "", "popular": true },
+    { "id": "orange-juice", "name": "Orange Juice", "brand": "Citrus Grove", "category": "grocery", "unit": "52 fl oz", "price": 4.49, "emoji": "🧃", "image": "", "stock": "in", "stockNote": "", "reorderDays": 10, "deliveryNote": "", "popular": false },
+    { "id": "butter-unsalted", "name": "Unsalted Butter", "brand": "Meadow Fresh", "category": "grocery", "unit": "1 lb (4 sticks)", "price": 4.99, "emoji": "🧈", "image": "", "stock": "in", "stockNote": "", "reorderDays": 30, "deliveryNote": "", "popular": false },
+    { "id": "chicken-breast", "name": "Boneless Chicken Breast", "brand": "Farm Select", "category": "grocery", "unit": "per lb", "price": 5.49, "priceWas": 5.99, "emoji": "🍗", "image": "", "stock": "in", "stockNote": "", "reorderDays": 14, "deliveryNote": "", "popular": false },
+    { "id": "rice-white-5lb", "name": "White Rice", "brand": "Golden Harvest", "category": "grocery", "unit": "5 lb", "price": 6.29, "emoji": "🍚", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "pasta-spaghetti", "name": "Spaghetti", "brand": "Bella Cucina", "category": "grocery", "unit": "16 oz", "price": 1.49, "emoji": "🍝", "image": "", "stock": "in", "stockNote": "", "reorderDays": 30, "deliveryNote": "", "popular": false },
+    { "id": "canned-soup", "name": "Chicken Noodle Soup", "brand": "Hearty Bowl", "category": "grocery", "unit": "10.5 oz can", "price": 1.99, "emoji": "🥫", "image": "", "stock": "in", "stockNote": "", "reorderDays": 30, "deliveryNote": "", "popular": true },
+    { "id": "apples-bag", "name": "Apples", "brand": "Orchard Fresh", "category": "grocery", "unit": "3 lb bag", "price": 4.79, "priceWas": 4.29, "emoji": "🍎", "image": "", "stock": "in", "stockNote": "", "reorderDays": 10, "deliveryNote": "", "popular": false },
+    { "id": "yogurt-greek", "name": "Greek Yogurt", "brand": "Pure Valley", "category": "grocery", "unit": "32 oz", "price": 5.49, "emoji": "🥣", "image": "", "stock": "in", "stockNote": "", "reorderDays": 10, "deliveryNote": "", "popular": true },
+    { "id": "oatmeal-rolled", "name": "Rolled Oats", "brand": "Morning Harvest", "category": "grocery", "unit": "42 oz", "price": 4.29, "emoji": "🌾", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "tea-bags", "name": "Black Tea Bags", "brand": "Garden Leaf", "category": "grocery", "unit": "100 ct", "price": 4.99, "priceWas": 5.49, "emoji": "🍵", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+
+    { "id": "toilet-paper-12", "name": "Toilet Paper, 12 Mega Rolls", "brand": "SoftLeaf", "category": "household", "unit": "12 mega rolls", "price": 13.49, "priceWas": 11.99, "emoji": "🧻", "image": "", "stock": "in", "stockNote": "", "reorderDays": 30, "deliveryNote": "", "popular": true },
+    { "id": "paper-towels-6", "name": "Paper Towels, 6 Rolls", "brand": "SoftLeaf", "category": "household", "unit": "6 large rolls", "price": 9.99, "emoji": "🧻", "image": "", "stock": "in", "stockNote": "", "reorderDays": 30, "deliveryNote": "", "popular": true },
+    { "id": "dish-soap", "name": "Dish Soap", "brand": "BrightWash", "category": "household", "unit": "19.4 fl oz", "price": 3.49, "emoji": "🧴", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "laundry-detergent", "name": "Laundry Detergent", "brand": "FreshWave", "category": "household", "unit": "100 fl oz (64 loads)", "price": 11.49, "priceWas": 12.99, "emoji": "🧺", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "trash-bags-tall", "name": "Tall Kitchen Trash Bags", "brand": "SealTight", "category": "household", "unit": "80 ct", "price": 12.99, "emoji": "🗑️", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "all-purpose-cleaner", "name": "All-Purpose Cleaner", "brand": "BrightWash", "category": "household", "unit": "28 fl oz spray", "price": 3.99, "emoji": "🧽", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "dishwasher-pods", "name": "Dishwasher Pods", "brand": "BrightWash", "category": "household", "unit": "62 ct", "price": 13.49, "priceWas": 12.49, "emoji": "🫧", "image": "", "stock": "low", "stockNote": "Only 5 left", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "aluminum-foil", "name": "Aluminum Foil", "brand": "KitchenPro", "category": "household", "unit": "75 sq ft", "price": 5.49, "emoji": "📦", "image": "", "stock": "in", "stockNote": "", "reorderDays": 90, "deliveryNote": "", "popular": false },
+    { "id": "light-bulbs-led", "name": "LED Light Bulbs, 4-Pack", "brand": "BrightGlow", "category": "household", "unit": "4 bulbs (60W eq.)", "price": 8.99, "priceWas": 9.99, "emoji": "💡", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "", "popular": false },
+
+    { "id": "hand-soap-refill", "name": "Hand Soap Refill", "brand": "BrightWash", "category": "personal", "unit": "56 fl oz refill", "price": 6.99, "emoji": "🧼", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "toothpaste-2pk", "name": "Toothpaste, 2-Pack", "brand": "FreshMint", "category": "personal", "unit": "2 × 5.5 oz", "price": 5.49, "emoji": "🪥", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "shampoo", "name": "Shampoo", "brand": "SilkCare", "category": "personal", "unit": "20 fl oz", "price": 6.49, "priceWas": 6.99, "emoji": "🚿", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "body-wash", "name": "Body Wash", "brand": "SilkCare", "category": "personal", "unit": "18 fl oz", "price": 5.99, "emoji": "🛁", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+    { "id": "toothbrush-soft", "name": "Soft Toothbrushes, 4-Pack", "brand": "FreshMint", "category": "personal", "unit": "4 ct", "price": 4.49, "emoji": "🪥", "image": "", "stock": "in", "stockNote": "", "reorderDays": 90, "deliveryNote": "", "popular": false },
+    { "id": "deodorant", "name": "Deodorant", "brand": "FreshGuard", "category": "personal", "unit": "2.6 oz", "price": 4.29, "priceWas": 3.99, "emoji": "🌸", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": false },
+    { "id": "denture-cleaner", "name": "Denture Cleanser Tablets", "brand": "ClearSmile", "category": "personal", "unit": "90 ct", "price": 7.49, "emoji": "🦷", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": true },
+    { "id": "facial-tissues", "name": "Facial Tissues, 4-Pack", "brand": "SoftLeaf", "category": "personal", "unit": "4 boxes", "price": 6.99, "emoji": "🤧", "image": "", "stock": "in", "stockNote": "", "reorderDays": 45, "deliveryNote": "", "popular": false },
+
+    { "id": "blood-pressure-monitor", "name": "Upper Arm Blood Pressure Monitor", "brand": "CareWell", "category": "health", "unit": "1 device, large display", "price": 39.99, "priceWas": 44.99, "emoji": "🩺", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "Ships in 2 days", "popular": false },
+    { "id": "ibuprofen-200", "name": "Ibuprofen 200mg, 100 ct", "brand": "ReliefMax", "category": "health", "unit": "100 tablets", "price": 7.49, "emoji": "💊", "image": "", "stock": "out", "stockNote": "Back in 3 days", "reorderDays": 90, "deliveryNote": "", "popular": false },
+    { "id": "reading-glasses-2", "name": "Reading Glasses +2.0", "brand": "ClearView", "category": "health", "unit": "1 pair", "price": 12.99, "emoji": "👓", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "", "popular": false },
+    { "id": "pill-organizer", "name": "Weekly Pill Organizer", "brand": "CareWell", "category": "health", "unit": "7-day, large compartments", "price": 8.99, "priceWas": 9.99, "emoji": "🗓️", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "", "popular": true },
+    { "id": "compression-socks", "name": "Compression Socks, 2 Pairs", "brand": "ComfortStep", "category": "health", "unit": "2 pairs", "price": 14.99, "emoji": "🧦", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "", "popular": false },
+    { "id": "multivitamin-50plus", "name": "Daily Multivitamin 50+", "brand": "VitaLife", "category": "health", "unit": "120 ct", "price": 11.49, "priceWas": 10.99, "emoji": "💊", "image": "", "stock": "in", "stockNote": "", "reorderDays": 60, "deliveryNote": "", "popular": true },
+    { "id": "nonslip-bath-mat", "name": "Non-Slip Bath Mat", "brand": "SafeStep", "category": "health", "unit": "1 mat with grips", "price": 16.99, "emoji": "🛟", "image": "", "stock": "in", "stockNote": "", "reorderDays": 0, "deliveryNote": "Ships in 2 days", "popular": false }
+  ]
+}
