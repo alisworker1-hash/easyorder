@@ -3,124 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EasyOrder — just tell us what you need</title>
-  <meta name="description" content="A simple, friendly way to reorder groceries, household, personal care and health items. Chat with a helper, see exact prices, get reminders before you run out, and pay with Apple Pay." />
-  <meta name="theme-color" content="#0f9d76" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%230f9d76' d='M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.2 14.6l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20.05 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.44C3.52 16.37 4.48 18 6 18h12v-2H6.42a.25.25 0 0 1-.22-.37z'/></svg>" type="image/svg+xml" />
-  <meta property="og:title" content="EasyOrder — just tell us what you need" />
-  <meta property="og:description" content="Chat with a friendly helper, see exact prices, get reminders before you run out, and pay with Apple Pay. Made simple for everyone." />
+  <title>EasyOrder — your friendly shopping helper</title>
+  <meta name="description" content="A calm, simple way to shop for home essentials. Just talk to your helper — it finds things, shows the real price, and orders for you. Made to be easy for everyone." />
+  <meta name="theme-color" content="#10996f" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='11' fill='%2310996f'/><path fill='%23fff' d='M7 17.5c-.8 0-1.5.7-1.5 1.5S6.2 20.5 7 20.5 8.5 19.8 8.5 19 7.8 17.5 7 17.5zm8 0c-.8 0-1.5.7-1.5 1.5s.7 1.5 1.5 1.5 1.5-.7 1.5-1.5-.7-1.5-1.5-1.5zM6 5l1.2 2.5h7.2c.5 0 1-.3 1.2-.8l1.6-3.3H6.4L5.8 2H3.5v1.5h1.4z'/></svg>" type="image/svg+xml" />
+  <meta property="og:title" content="EasyOrder — your friendly shopping helper" />
+  <meta property="og:description" content="Just talk to your helper — it finds things, shows the real price, and orders for you. Made to be easy for everyone." />
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
-  <a class="skip-link" href="#chat">Skip to the helper</a>
+  <a class="skip-link" href="#chatInput">Skip to the chat box</a>
   <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <header class="site-header">
-    <div class="wrap header-inner">
-      <a class="logo" href="#top" aria-label="EasyOrder home">
-        <span class="logo-mark" aria-hidden="true">🛒</span>
-        <span>Easy<span class="logo-accent">Order</span></span>
-      </a>
-
-      <div class="header-tools">
-        <div class="textsize" role="group" aria-label="Text size">
-          <span class="textsize-label" aria-hidden="true">Text size</span>
-          <button class="ts-btn" data-size="base" aria-pressed="true" title="Normal text size">A</button>
-          <button class="ts-btn ts-mid" data-size="large" aria-pressed="false" title="Larger text">A</button>
-          <button class="ts-btn ts-big" data-size="xlarge" aria-pressed="false" title="Largest text">A</button>
-        </div>
-        <button class="cart-btn" id="cartOpen" aria-haspopup="dialog" aria-label="Open your cart">
-          <span class="cart-ico" aria-hidden="true">🛍️</span>
-          <span class="cart-text">Cart</span>
-          <span class="cart-count" id="cartCount" aria-hidden="true">0</span>
-        </button>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="EasyOrder home">
+      <span class="brand-dot" aria-hidden="true">🛒</span>
+      <span class="brand-name">Easy<span>Order</span></span>
+    </a>
+    <div class="topbar-tools">
+      <div class="textsize" role="group" aria-label="Text size">
+        <span class="textsize-label" aria-hidden="true">Text&nbsp;size</span>
+        <button class="ts-btn" data-size="base" aria-pressed="true" title="Normal text">A</button>
+        <button class="ts-btn ts-mid" data-size="large" aria-pressed="false" title="Larger text">A</button>
+        <button class="ts-btn ts-big" data-size="xlarge" aria-pressed="false" title="Largest text">A</button>
       </div>
+      <button class="pill-btn" id="browseOpen" aria-haspopup="dialog">
+        <span aria-hidden="true">🧺</span> <span class="pill-text">Browse</span>
+      </button>
+      <button class="pill-btn cart-pill" id="cartOpen" aria-haspopup="dialog" aria-label="Open your cart">
+        <span aria-hidden="true">🛍️</span> <span class="pill-text">Cart</span>
+        <span class="cart-count" id="cartCount" aria-hidden="true">0</span>
+      </button>
     </div>
   </header>
 
-  <main id="top">
-    <!-- ===== Conversational hero — the centerpiece ===== -->
-    <section class="hero" aria-labelledby="heroTitle">
-      <div class="hero-bg" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div class="wrap hero-inner">
-        <div class="hero-copy">
-          <span class="hero-eyebrow">Your personal shopping helper</span>
-          <h1 id="heroTitle">Just tell us what<br><span>you need.</span></h1>
-          <p class="hero-sub">No menus to figure out. Talk to EasyOrder like a person — it finds your items, shows the exact price, and adds them to your cart. Then pay in one tap with Apple&nbsp;Pay.</p>
-          <ul class="hero-points">
-            <li><span aria-hidden="true">✅</span> Exact prices, every time</li>
-            <li><span aria-hidden="true">🔔</span> Reminders before you run out</li>
-            <li><span aria-hidden="true">📲</span> One-tap Apple&nbsp;Pay checkout</li>
-          </ul>
-        </div>
-
-        <!-- Chat panel (ChatGPT-style) -->
-        <section class="chat" id="chat" aria-label="EasyOrder helper chat">
-          <div class="chat-top">
-            <span class="chat-avatar" aria-hidden="true">🛒</span>
-            <div class="chat-id">
-              <strong>EasyOrder Helper</strong>
-              <span class="chat-status"><i class="dot"></i> Here to help</span>
-            </div>
-          </div>
-          <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
-          <div class="chat-suggest" id="chatSuggestions"></div>
-          <form class="chat-input" id="chatForm" autocomplete="off">
-            <label for="chatInput" class="sr-only">Type what you need</label>
-            <input id="chatInput" type="text" placeholder="Type what you need…" />
-            <button class="chat-send" type="submit" aria-label="Send message">
-              <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2z"/></svg>
-            </button>
-          </form>
-          <p class="chat-note" id="chatNote"></p>
+  <!-- The whole page is the conversation -->
+  <main class="stage">
+    <div class="chat-col">
+      <div class="chat-scroll" id="chatScroll">
+        <section class="welcome" id="welcome">
+          <div class="welcome-avatar" aria-hidden="true">🛒</div>
+          <h1>Hi — how can I help today?</h1>
+          <p>Just tell me what you need in your own words. I'll find it, show you the real price, and pop it in your cart whenever you're ready. No rush, no pressure.</p>
         </section>
+        <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
       </div>
-    </section>
 
-    <div class="wrap">
-      <!-- Proactive panel -->
-      <section class="proactive" id="proactive" aria-label="Helpful reminders" hidden>
-        <div class="section-head">
-          <h2><span aria-hidden="true">💡</span> Looking out for you</h2>
-          <p>A few things worth a quick look before you order.</p>
-        </div>
-        <div class="proactive-cards" id="proactiveCards"></div>
-      </section>
-
-      <!-- Browse catalog -->
-      <section class="catalog" aria-label="Browse all products">
-        <div class="section-head">
-          <h2><span aria-hidden="true">🧺</span> Or browse everything</h2>
-          <p>Prefer to look around? Tap a category or search below.</p>
-        </div>
-        <nav class="categories" id="categories" aria-label="Shop by category"></nav>
-        <div class="search-wrap">
-          <label for="searchInput" class="sr-only">Search products</label>
-          <span class="search-ico" aria-hidden="true">🔍</span>
-          <input type="search" id="searchInput" class="search-input" placeholder="Search for milk, soap, vitamins…" autocomplete="off" />
-        </div>
-        <p class="results-note" id="resultsNote" role="status"></p>
-        <div class="grid" id="grid"></div>
-      </section>
+      <div class="composer">
+        <div class="suggest" id="chatSuggestions"></div>
+        <form class="composer-bar" id="chatForm" autocomplete="off">
+          <label for="chatInput" class="sr-only">Type your message</label>
+          <input id="chatInput" type="text" placeholder="Type here, like “I need milk and bread”…" />
+          <button class="send" type="submit" aria-label="Send message">
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 4l-1.4 1.4L16.2 11H4v2h12.2l-5.6 5.6L12 20l8-8z" transform="rotate(-90 12 12)"/></svg>
+          </button>
+        </form>
+        <p class="composer-note" id="chatNote"></p>
+      </div>
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <p class="foot-tag"><span aria-hidden="true">🛒</span> EasyOrder — home essentials, reordered the easy way.</p>
-      <p class="foot-note" id="footNote"></p>
-      <p class="foot-fine">Demo store · prices are illustrative · no real charges are made in demo mode.</p>
+  <!-- Browse overlay (opt-in) -->
+  <div class="overlay-backdrop" id="browseBackdrop" hidden></div>
+  <section class="browse" id="browseView" role="dialog" aria-modal="true" aria-labelledby="browseTitle" hidden>
+    <div class="browse-head">
+      <h2 id="browseTitle">Browse items</h2>
+      <button class="icon-btn" id="browseClose" aria-label="Close browse">✕</button>
     </div>
-  </footer>
-
-  <!-- Floating: jump back to the helper -->
-  <button class="chat-fab" id="chatFab" aria-label="Go to the EasyOrder helper">
-    <span aria-hidden="true">💬</span> <span class="fab-text">Ask EasyOrder</span>
-  </button>
+    <div class="browse-body">
+      <div class="search-wrap">
+        <label for="searchInput" class="sr-only">Search products</label>
+        <span class="search-ico" aria-hidden="true">🔍</span>
+        <input type="search" id="searchInput" class="search-input" placeholder="Search for milk, soap, vitamins…" autocomplete="off" />
+      </div>
+      <nav class="categories" id="categories" aria-label="Shop by category"></nav>
+      <p class="results-note" id="resultsNote" role="status"></p>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
 
   <!-- Cart drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
@@ -141,7 +105,9 @@
     </div>
   </div>
 
-  <script src="app.js?v=3"></script>
-  <script src="assistant.js?v=5"></script>
+  <span id="footNote" class="sr-only"></span>
+
+  <script src="app.js?v=5"></script>
+  <script src="assistant.js?v=6"></script>
 </body>
 </html>

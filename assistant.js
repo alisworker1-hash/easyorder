@@ -38,6 +38,7 @@
       "When the shopper wants items, call add_to_cart with the exact ids and confirm what you added",
       "and the running total. To review or pay, call open_cart — the shopper taps 'Pay with Apple",
       "Pay' themselves; never claim you charged them. Keep replies to 1–3 short sentences.",
+      "Never upsell or pressure the shopper — only add what they actually ask for. Be calm and patient.",
       "",
       "CATALOG (id | name | unit | price | stock):",
       catalogText(),
@@ -160,10 +161,13 @@
   function safeHistory() { try { return JSON.parse(localStorage.getItem("eo.history") || "{}"); } catch { return {}; } }
 
   /* ---------- rendering ---------- */
-  function scrollDown() { const m = el("chatMessages"); m.scrollTop = m.scrollHeight; }
+  function scrollDown() { const s = el("chatScroll"); if (s) s.scrollTop = s.scrollHeight; }
+  function hideWelcome() { const w = el("welcome"); if (w) w.hidden = true; }
   function userMsg(text) {
-    const d = document.createElement("div"); d.className = "c-msg c-user"; d.textContent = text;
-    el("chatMessages").appendChild(d); scrollDown();
+    hideWelcome();
+    const d = document.createElement("div"); d.className = "c-msg c-user";
+    const b = document.createElement("div"); b.className = "c-bubble"; b.textContent = text;
+    d.appendChild(b); el("chatMessages").appendChild(d); scrollDown();
   }
   function productCardsHTML(ids) {
     const list = [...new Set(ids)].map((id) => PRODUCTS[id]).filter(Boolean);
@@ -180,35 +184,37 @@
   }
   function botMsg(text, ids) {
     const d = document.createElement("div"); d.className = "c-msg c-bot";
-    d.innerHTML = esc(text) + (ids && ids.length ? productCardsHTML(ids) : "");
+    d.innerHTML = `<div class="avatar" aria-hidden="true">🛒</div><div class="c-bubble">${esc(text)}${ids && ids.length ? productCardsHTML(ids) : ""}</div>`;
     el("chatMessages").appendChild(d); scrollDown();
   }
   function typing(on) {
     let t = el("cTyping");
-    if (on && !t) { t = document.createElement("div"); t.id = "cTyping"; t.className = "c-msg c-bot c-typing"; t.innerHTML = "<i></i><i></i><i></i>"; el("chatMessages").appendChild(t); scrollDown(); }
-    else if (!on && t) t.remove();
+    if (on && !t) {
+      t = document.createElement("div"); t.id = "cTyping"; t.className = "c-msg c-bot";
+      t.innerHTML = `<div class="avatar" aria-hidden="true">🛒</div><div class="c-bubble"><div class="c-typing"><i></i><i></i><i></i></div></div>`;
+      el("chatMessages").appendChild(t); scrollDown();
+    } else if (!on && t) t.remove();
   }
   function renderSuggestions() {
     const chips = [
-      { icon: "🔁", b: "Reorder my usuals", s: "Your regular items", q: "reorder my usuals" },
-      { icon: "🏷️", b: "What's on sale?", s: "Today's price drops", q: "what's on sale?" },
-      { icon: "🧴", b: "I'm low on cleaning", s: "Household supplies", q: "I need cleaning supplies" },
-      { icon: "🛒", b: "Help me shop", s: "Not sure where to start", q: "help me shop for groceries" },
+      { icon: "🔁", label: "Reorder my usual items", q: "reorder my usual items" },
+      { icon: "🥪", label: "Plan a simple meal", q: "help me plan a simple meal and add what I'd need" },
+      { icon: "🔎", label: "Find something specific", q: "help me find a specific item" },
+      { icon: "🧺", label: "What do I usually buy?", q: "what do I usually buy?" },
     ];
     el("chatSuggestions").innerHTML = chips.map((c) =>
-      `<button type="button" class="c-sug" data-chip="${esc(c.q)}"><span class="c-sug-ico" aria-hidden="true">${c.icon}</span>
-        <span><b>${esc(c.b)}</b><small>${esc(c.s)}</small></span></button>`).join("");
+      `<button type="button" class="c-sug" data-chip="${esc(c.q)}"><span aria-hidden="true">${c.icon}</span> ${esc(c.label)}</button>`).join("");
   }
 
   function ensureStarted() {
     if (A.started || !ready()) return;
     A.started = true;
     A.convo = [{ role: "system", content: systemPrompt() }];
-    botMsg("Hi! I'm your EasyOrder Helper. 👋 Just tell me what you need — like “I need milk and bread” — and I'll find it, show the price, and add it to your cart.", []);
-    const due = dueReorderIds();
-    if (due.length) botMsg(`While you're here — you're about due for ${PRODUCTS[due[0]].name}. Want me to add it?`, [due[0]]);
-    el("chatNote").textContent = live() ? "Ask me anything — I quote real prices and add items for you." : "Demo mode — connect Fireworks AI (see AI.md) for full conversation.";
-    el("chatNote").className = "chat-note" + (live() ? "" : " demo");
+    // The greeting lives in the calm #welcome block — no auto-message, no nudge to buy.
+    el("chatNote").textContent = live()
+      ? "I show real prices, and I only add things when you ask. Take your time."
+      : "Demo mode — connect Fireworks AI (see AI.md) for full conversation.";
+    el("chatNote").className = "composer-note" + (live() ? "" : " demo");
     renderSuggestions();
   }
 
@@ -235,10 +241,6 @@
     if (addc && !addc.disabled) {
       const p = PRODUCTS[addc.dataset.addChat]; if (!p) return;
       addToCart(p.id, 1); addc.textContent = "Added ✓"; addc.classList.add("added"); addc.disabled = true; return;
-    }
-    if (e.target.closest("#chatFab")) {
-      document.getElementById("chat").scrollIntoView({ behavior: "smooth", block: "center" });
-      setTimeout(() => el("chatInput").focus(), 300); return;
     }
   });
   const form = el("chatForm");

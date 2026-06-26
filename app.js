@@ -125,7 +125,8 @@ function thumb(p) {
 }
 function productCard(p) {
   const out = p.stock === "out";
-  const wasLine = (p.priceWas != null && p.priceWas !== p.price)
+  // Only show the struck "was" price for genuine drops (a deal) — not for increases.
+  const wasLine = (p.priceWas != null && p.price < p.priceWas)
     ? `<span class="price-was">was ${money(p.priceWas)}</span>` : "";
   return `
   <article class="product" data-id="${esc(p.id)}">
@@ -276,8 +277,9 @@ function budgetCard() {
 }
 
 function renderProactive() {
-  const cards = buildProactive();
   const panel = $("#proactive");
+  if (!panel) return; // proactive panel intentionally removed in the calm redesign
+  const cards = buildProactive();
   const html = cards.map((c) => {
     const cls = c.type + (c.up ? " up" : "") + (c.out ? " out" : "");
     const act = c.action
@@ -375,6 +377,20 @@ function closeCart() {
   $("#cartDrawer").hidden = true;
   $("#drawerBackdrop").hidden = true;
   document.body.style.overflow = "";
+  if (lastFocus) lastFocus.focus();
+}
+
+function openBrowse() {
+  lastFocus = document.activeElement;
+  $("#browseBackdrop").hidden = false;
+  $("#browseView").hidden = false;
+  document.body.style.overflow = "hidden";
+  setTimeout(() => $("#browseClose").focus(), 0);
+}
+function closeBrowse() {
+  $("#browseView").hidden = true;
+  $("#browseBackdrop").hidden = true;
+  if ($("#cartDrawer").hidden && $("#modal").hidden) document.body.style.overflow = "";
   if (lastFocus) lastFocus.focus();
 }
 
@@ -502,6 +518,10 @@ document.addEventListener("click", (e) => {
   // budget
   if (t.closest("[data-budget-edit]")) { editBudget(); return; }
 
+  // browse overlay
+  if (t.closest("#browseOpen")) { openBrowse(); return; }
+  if (t.closest("#browseClose") || t.id === "browseBackdrop") { closeBrowse(); return; }
+
   // open/close cart
   if (t.closest("#cartOpen")) { openCart(); return; }
   if (t.closest("#cartClose") || t.closest("[data-close-cart]") || t.id === "drawerBackdrop") { closeCart(); return; }
@@ -517,10 +537,12 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     if (!$("#modal").hidden) return closeModal();
     if (!$("#cartDrawer").hidden) return closeCart();
+    if (!$("#browseView").hidden) return closeBrowse();
   }
   if (e.key === "Tab") {
     if (!$("#modal").hidden) trapFocus($("#modal"), e);
     else if (!$("#cartDrawer").hidden) trapFocus($("#cartDrawer"), e);
+    else if (!$("#browseView").hidden) trapFocus($("#browseView"), e);
   }
 });
 
