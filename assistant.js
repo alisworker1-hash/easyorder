@@ -173,12 +173,12 @@
     const list = [...new Set(ids)].map((id) => PRODUCTS[id]).filter(Boolean);
     if (!list.length) return "";
     return `<div class="c-prods">` + list.map((p) => {
-      const img = p.image ? `<img class="c-prod-img" src="${p.image}" alt="" onerror="this.outerHTML='<span class=&quot;c-prod-img&quot;>${p.emoji || "📦"}</span>'">`
-                          : `<span class="c-prod-img">${p.emoji || "📦"}</span>`;
       const out = p.stock === "out";
-      return `<div class="c-prod">${img}
+      const q = encodeURIComponent(`${p.brand} ${p.name}`.trim());
+      return `<div class="c-prod"><span class="c-prod-img">${esc(p.emoji || "📦")}</span>
         <div class="c-prod-info"><div class="c-prod-name">${esc(p.name)}</div>
-          <div class="c-prod-meta">${esc(p.unit)} · <span class="c-prod-price">${money(p.price)}</span></div></div>
+          <div class="c-prod-meta">${esc(p.unit)} · <span class="c-prod-price">${money(p.price)}</span>
+            · <a class="view-link" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener noreferrer">see photos</a></div></div>
         <button class="c-prod-add" data-add-chat="${esc(p.id)}" ${out ? "disabled" : ""}>${out ? "Out" : "Add"}</button></div>`;
     }).join("") + `</div>`;
   }

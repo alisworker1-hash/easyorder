@@ -117,11 +117,13 @@ function stockLine(p) {
   return `<span class="stock-line in">● In stock</span>`;
 }
 function thumb(p) {
-  const img = p.image
-    ? `<img src="${esc(p.image)}" alt="${esc(p.brand + " " + p.name)}" loading="lazy" decoding="async" onerror="this.remove()" />`
-    : "";
-  return `<div class="product-thumb">${img}<span aria-hidden="true">${esc(p.emoji || "📦")}</span>
-    ${thumbBadge(p)}${p.popular ? `<span class="thumb-badge pop">Popular</span>` : ""}</div>`;
+  // Emoji-only tiles — no scraped product photos (they were unreliable and mislabeled).
+  return `<div class="product-thumb"><span class="thumb-emoji" aria-hidden="true">${esc(p.emoji || "📦")}</span>${thumbBadge(p)}</div>`;
+}
+// A real-photo link: opens a web search for the item so shoppers can see the actual product.
+function viewLink(p) {
+  const q = encodeURIComponent(`${p.brand} ${p.name}`.trim());
+  return `<a class="view-link" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener noreferrer">🔎 See real photos</a>`;
 }
 function productCard(p) {
   const out = p.stock === "out";
@@ -140,6 +142,7 @@ function productCard(p) {
         ${wasLine}${priceTag(p)}
       </div>
       ${stockLine(p)}
+      ${viewLink(p)}
       <div class="product-foot">
         <div class="qty" role="group" aria-label="Quantity for ${esc(p.name)}">
           <button type="button" data-step="-1" data-id="${esc(p.id)}" aria-label="Decrease quantity" ${out ? "disabled" : ""}>−</button>

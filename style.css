@@ -108,6 +108,10 @@ body { display: flex; flex-direction: column; }
 .c-prod-add { border: 0; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; border-radius: 999px; padding: .5rem 1rem; min-height: 44px; white-space: nowrap; }
 .c-prod-add:hover { background: var(--accent-dark); }
 .c-prod-add.added { background: var(--accent-soft); color: var(--accent-dark); }
+.view-link { color: var(--accent-dark); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.view-link:hover { text-decoration: underline; }
+.product .view-link { display: inline-block; margin-top: .15rem; font-size: .92rem; }
+.c-prod-meta .view-link { font-size: .9rem; }
 
 /* ---------- Composer ---------- */
 .composer { flex: 0 0 auto; padding: .5rem 0 1.1rem; background: linear-gradient(to top, var(--paper) 70%, transparent); }
