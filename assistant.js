@@ -67,9 +67,14 @@
   /* tool executors — authoritative, real prices. Returns ids surfaced (for inline cards). */
   let surfaced = [];
   function runTool(name, args) {
+    args = args || {};
     if (name === "add_to_cart") {
+      // Some models return `items` as a JSON-encoded string or a single object — normalize it.
+      let items = args.items;
+      if (typeof items === "string") { try { items = JSON.parse(items); } catch { items = []; } }
+      if (items && !Array.isArray(items)) items = [items];
       const added = [];
-      (args.items || []).forEach((it) => {
+      (items || []).forEach((it) => {
         const p = PRODUCTS[it.id];
         if (!p || p.stock === "out") return;
         const qty = Math.max(1, parseInt(it.qty, 10) || 1);
