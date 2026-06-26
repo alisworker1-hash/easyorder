@@ -8,8 +8,8 @@
     "deliveryFee": 4.99,
     "monthlyBudgetDefault": 250,
     "stripePublishableKey": "",
-    "assistantProxyUrl": "",
-    "assistantModel": "accounts/fireworks/models/llama-v3p3-70b-instruct"
+    "assistantProxyUrl": "https://easyorder-ai.alisworker1.workers.dev",
+    "assistantModel": "meta-llama/llama-3.3-70b-instruct"
   },
   "categories": [
     {
