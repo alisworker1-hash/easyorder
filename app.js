@@ -430,9 +430,21 @@ function demoCheckout(items) {
     <button class="btn btn-primary btn-block" data-close-modal style="margin-top:1rem">Done</button>
   `);
   announce(`Order ${orderNo} placed. Total ${money(total)}.`);
+  celebrate();
 
   cart = {}; saveCart(); updateCartBadge(); renderCart(); renderProactive();
   closeCart();
+}
+
+/* A gentle, brand-coloured celebration on a placed order (canvas-confetti, vendored in /vendor).
+   Degrades silently if the library didn't load, and respects prefers-reduced-motion. */
+function celebrate() {
+  if (typeof confetti !== "function") return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#0f8f64", "#0a6f4d", "#b88a36", "#ffffff"];
+  const base = { spread: 75, startVelocity: 36, gravity: 0.95, scalar: 0.9, ticks: 150, zIndex: 2000, useWorker: false, colors, disableForReducedMotion: true };
+  confetti({ ...base, particleCount: 55, origin: { x: 0.25, y: 1 } });
+  confetti({ ...base, particleCount: 55, origin: { x: 0.75, y: 1 } });
 }
 
 /* REAL payments: wired only when meta.stripePublishableKey is set. See STRIPE.md.
