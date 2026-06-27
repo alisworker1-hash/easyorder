@@ -233,8 +233,28 @@
     } finally { A.busy = false; }
   }
 
+  /* ---------- concierge open / close ---------- */
+  let lastFocus = null;
+  function isOpen() { const c = el("concierge"); return c && !c.hidden; }
+  function openConcierge() {
+    lastFocus = document.activeElement;
+    ensureStarted();
+    el("conciergeBackdrop").hidden = false;
+    el("concierge").hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(() => { const i = el("chatInput"); if (i) i.focus(); scrollDown(); }, 60);
+  }
+  function closeConcierge() {
+    el("concierge").hidden = true;
+    el("conciergeBackdrop").hidden = true;
+    document.body.style.overflow = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
   /* ---------- events ---------- */
   document.addEventListener("click", (e) => {
+    if (e.target.closest("#conciergeOpen") || e.target.closest("#conciergeFab")) { openConcierge(); return; }
+    if (e.target.closest("#conciergeClose") || e.target.id === "conciergeBackdrop") { closeConcierge(); return; }
     const chip = e.target.closest("[data-chip]");
     if (chip) { send(chip.dataset.chip); return; }
     const addc = e.target.closest("[data-add-chat]");
@@ -243,6 +263,7 @@
       addToCart(p.id, 1); addc.textContent = "Added ✓"; addc.classList.add("added"); addc.disabled = true; return;
     }
   });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && isOpen()) closeConcierge(); });
   const form = el("chatForm");
   if (form) form.addEventListener("submit", (e) => { e.preventDefault(); send(el("chatInput").value); });
 

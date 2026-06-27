@@ -549,15 +549,16 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  const bv = $("#browseView"); // may be absent in the storefront layout
   if (e.key === "Escape") {
     if (!$("#modal").hidden) return closeModal();
     if (!$("#cartDrawer").hidden) return closeCart();
-    if (!$("#browseView").hidden) return closeBrowse();
+    if (bv && !bv.hidden) return closeBrowse();
   }
   if (e.key === "Tab") {
     if (!$("#modal").hidden) trapFocus($("#modal"), e);
     else if (!$("#cartDrawer").hidden) trapFocus($("#cartDrawer"), e);
-    else if (!$("#browseView").hidden) trapFocus($("#browseView"), e);
+    else if (bv && !bv.hidden) trapFocus(bv, e);
   }
 });
 
