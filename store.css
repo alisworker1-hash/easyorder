@@ -285,3 +285,20 @@ img { max-width: 100%; }
 }
 @media (max-width: 380px) { .brand-name { display: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+/* ---------- Featured / popular row ---------- */
+.featured-row { display: flex; gap: 1rem; overflow-x: auto; padding: .3rem .2rem 1rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.featured-row::-webkit-scrollbar { height: 8px; }
+.featured-row::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
+.feat-card { scroll-snap-align: start; flex: 0 0 200px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: transform .14s, box-shadow .18s; }
+.feat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.feat-thumb { position: relative; aspect-ratio: 5/3; display: grid; place-items: center; background: linear-gradient(160deg, var(--accent-tint), var(--accent-soft)); font-size: 2.7rem; }
+.feat-badge { position: absolute; top: .5rem; left: .5rem; background: #157f49; color: #fff; font-size: .72rem; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; box-shadow: var(--shadow-xs); }
+.feat-body { padding: .7rem .8rem .85rem; display: flex; flex-direction: column; gap: .2rem; flex: 1; }
+.feat-name { font-weight: 600; font-size: 1.02rem; line-height: 1.25; }
+.feat-unit { font-size: .85rem; color: var(--ink-soft); }
+.feat-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; padding-top: .5rem; }
+.feat-price { font-weight: 800; font-size: 1.2rem; }
+.feat-add { border: 0; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; border-radius: 999px; padding: .42rem .9rem; min-height: 42px; font-size: .92rem; white-space: nowrap; }
+.feat-add:hover { background: var(--accent-dark); }
+@media (max-width: 600px) { .feat-card { flex-basis: 165px; } .feat-thumb { font-size: 2.3rem; } }
