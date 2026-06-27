@@ -184,6 +184,32 @@ function renderGrid() {
 /* per-card quantity (UI only until "Add") */
 function cardQty(id) { const o = $(`#qty-${CSS.escape(id)}`); return o ? Math.max(1, parseInt(o.textContent, 10) || 1) : 1; }
 
+/* ---------------- featured "popular" row ---------------- */
+/* Compact cards (NOT .product, no qty-id) so they single-add and never clash with the grid. */
+function featCard(p) {
+  const drop = p.priceWas != null && p.price < p.priceWas;
+  const badge = drop ? `<span class="feat-badge">Save ${money(p.priceWas - p.price)}</span>` : "";
+  return `
+  <article class="feat-card">
+    <div class="feat-thumb">${badge}<span aria-hidden="true">${esc(p.emoji || "📦")}</span></div>
+    <div class="feat-body">
+      <div class="feat-name">${esc(p.name)}</div>
+      <span class="feat-unit">${esc(p.unit)}</span>
+      <div class="feat-row">
+        <span class="feat-price">${money(p.price)}</span>
+        <button class="feat-add" data-add="${esc(p.id)}" aria-label="Add ${esc(p.name)} to cart">+ Add</button>
+      </div>
+    </div>
+  </article>`;
+}
+function renderFeatured() {
+  const sec = $("#featured"); if (!sec) return;
+  const pop = DATA.products.filter((p) => p.popular && p.stock !== "out").slice(0, 12);
+  if (!pop.length) { sec.hidden = true; return; }
+  $("#featuredRow").innerHTML = pop.map(featCard).join("");
+  sec.hidden = false;
+}
+
 /* ---------------- proactive "looking out for you" engine ---------------- */
 function seedHistoryIfNeeded() {
   if (history && typeof history === "object") return;
@@ -574,6 +600,7 @@ fetch("data.json", { cache: "no-cache" })
     applyTextSize(LS.get("eo.textSize", "base"));
     seedHistoryIfNeeded();
     renderCategories();
+    renderFeatured();
     renderGrid();
     renderProactive();
     updateCartBadge();
