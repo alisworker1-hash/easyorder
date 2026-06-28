@@ -424,3 +424,24 @@ img { max-width: 100%; }
 .feat-add { border: 0; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; border-radius: 999px; padding: .42rem .9rem; min-height: 42px; font-size: .92rem; white-space: nowrap; }
 .feat-add:hover { background: var(--accent-dark); }
 @media (max-width: 600px) { .feat-card { flex-basis: 165px; } .feat-thumb { font-size: 2.3rem; } }
+
+/* ---------- Design pass (Gemini): proactive + budget + chat polish ---------- */
+/* Proactive "Looking out for you" cards: calmer, clearer hierarchy */
+.pcard { gap: .7rem; transition: transform .14s, box-shadow .18s; }
+.pcard:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.pcard-title { font-size: 1.15rem; margin-bottom: .15rem; }
+.pcard-dismiss { padding: .5rem .65rem; border: 1px solid var(--line-strong); background: transparent; color: var(--ink-soft); border-radius: 999px; min-width: 44px; min-height: 44px; transition: background .15s, border-color .15s, color .15s; }
+.pcard-dismiss:hover { background: var(--surface-2); border-color: var(--ink-soft); color: var(--ink); }
+/* Monthly budget card: clearer meter + figures */
+.meter { height: 16px; margin-top: .4rem; }
+.meter.over > span { background: var(--warn); }
+.budget-line { font-size: 1.05rem; margin-top: .6rem; }
+.budget-coach { font-size: 1rem; line-height: 1.4; }
+/* Chat typing indicator + empty states */
+.c-typing i { width: 10px; height: 10px; }
+.empty-state { padding: 3rem 1.5rem; font-size: 1.12rem; color: var(--ink-soft); }
+.empty-state p { margin-top: .8rem; line-height: 1.6; }
+.empty-emoji { font-size: 3.6rem; }
+.cart-empty { padding: 2.4rem 1.2rem; font-size: 1.12rem; color: var(--ink-soft); }
+.cart-empty p { margin-top: .7rem; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) { .pcard:hover { transform: none !important; } }
