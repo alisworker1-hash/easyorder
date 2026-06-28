@@ -546,14 +546,29 @@ function closeModal() {
 }
 
 /* ---------------- budget editor ---------------- */
+/* Accessible budget editor — a calm modal instead of a jarring native prompt. */
 function editBudget() {
   const current = budget || DATA.meta.monthlyBudgetDefault || 0;
-  const val = window.prompt("Set your monthly budget (in dollars):", String(current));
-  if (val == null) return;
-  const n = Math.max(0, Math.round(parseFloat(val) || 0));
-  budget = n; LS.set("eo.budget", n);
-  renderProactive(); renderCart();
-  announce(`Monthly budget set to ${money(n)}.`);
+  openModal(`
+    <h2 id="modalTitle"><span aria-hidden="true">🎯</span> Your monthly budget</h2>
+    <p class="confirm-sub">About how much would you like to spend on essentials each month?</p>
+    <div class="budget-edit">
+      <span class="budget-edit-dollar" aria-hidden="true">$</span>
+      <label for="budgetInput" class="sr-only">Monthly budget in dollars</label>
+      <input type="number" id="budgetInput" class="pref-input budget-input" value="${current}" min="0" step="10" inputmode="numeric" aria-label="Monthly budget in dollars" />
+    </div>
+    <button class="btn btn-primary btn-block" id="saveBudget" style="margin:.4rem 0 .6rem">Save budget</button>
+    <button class="btn btn-ghost btn-block" data-close-modal>Cancel</button>
+  `);
+  setTimeout(() => { const i = $("#budgetInput"); if (i) { i.focus(); i.select(); } }, 0);
+  const save = () => {
+    const n = Math.max(0, Math.round(parseFloat($("#budgetInput").value) || 0));
+    budget = n; LS.set("eo.budget", n);
+    closeModal(); renderProactive(); renderCart();
+    announce(`Monthly budget set to ${money(n)}.`);
+  };
+  $("#saveBudget").addEventListener("click", save);
+  $("#budgetInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); save(); } });
 }
 
 /* ---------------- remembered preferences (Personal Memory) ----------------
