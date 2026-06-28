@@ -450,3 +450,24 @@ img { max-width: 100%; }
 .cart-empty { padding: 2.4rem 1.2rem; font-size: 1.12rem; color: var(--ink-soft); }
 .cart-empty p { margin-top: .7rem; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { .pcard:hover { transform: none !important; } }
+
+/* ---------- Quick wins (from the Codex + Gemini reviews) ---------- */
+/* Clickable inline links read as clickable — underline by default (elder clarity) */
+.view-link { text-decoration: underline; text-underline-offset: 2px; }
+/* Chat suggestion chips read clearly as tappable */
+.c-sug { border: 1.5px solid var(--line-strong); background: var(--surface); font-size: 1rem; padding: .6rem 1rem; min-height: 50px; box-shadow: var(--shadow-xs); }
+.c-sug:hover { border-color: var(--accent); background: var(--accent-tint); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.c-sug:active { transform: translateY(0); box-shadow: var(--shadow-xs); }
+/* 'Pay another way' is a fully valid choice — give it presence */
+#payOther { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink); font-weight: 600; }
+#payOther:hover { background: var(--line); border-color: var(--ink-soft); }
+/* Product brand: sentence case + a touch more contrast reads easier than faint uppercase */
+.product-brand { text-transform: none; letter-spacing: 0; color: var(--ink-soft); font-size: .95rem; }
+/* Accessible budget editor modal */
+.budget-edit { display: flex; align-items: center; justify-content: center; gap: .3rem; margin: .2rem 0 1.1rem; }
+.budget-edit-dollar { font-size: 1.6rem; font-weight: 800; color: var(--ink-soft); }
+.budget-input { width: 8rem; text-align: center; font-size: 1.5rem; font-weight: 800; }
+/* Make the budget 'Adjust' button read as a clear action */
+.pcard.budget .btn-small { background: var(--accent-soft); color: var(--accent-dark); border-color: var(--accent); font-weight: 700; min-height: 46px; }
+.pcard.budget .btn-small:hover { background: var(--accent-tint); border-color: var(--accent-dark); }
+@media (prefers-reduced-motion: reduce) { .c-sug:hover { transform: none !important; } }

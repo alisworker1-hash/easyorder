@@ -422,7 +422,7 @@
     // The greeting lives in the calm #welcome block — no auto-message, no nudge to buy.
     el("chatNote").textContent = live()
       ? "I show real prices, and I only add things when you ask. Take your time."
-      : "Demo mode — connect Fireworks AI (see AI.md) for full conversation.";
+      : "I can help you find and add items right now. Take your time.";
     el("chatNote").className = "composer-note" + (live() ? "" : " demo");
     renderSuggestions();
   }
