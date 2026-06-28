@@ -371,10 +371,12 @@
           <button class="c-prod-add" data-add-chat="${esc(p.id)}" ${out ? "disabled" : ""}>${out ? "Out" : "Add"}</button></div>
         <div class="c-rec-why ${f.isPick ? "good" : "muted"}">${f.isPick ? "👍 " : "— "}${esc(f.note || "")}</div>
         ${f.isPick && f.tradeoff ? `<div class="c-rec-trade">Heads-up: ${esc(f.tradeoff)}</div>` : ""}
-        <div class="c-rec-bar"><i style="width:${bar}%"></i></div></div>`;
+        <div class="c-rec-bar" role="img" aria-label="${f.isPick ? "best fit" : "lower fit"}"><i style="width:${bar}%"></i></div></div>`;
     }).join("");
     const band = confBand(d.confidence);
     const title = band === "low" ? "Close call" : "My recommendation";
+    // Friendly label PLUS the honest number — never drop the % (it's the trust signal).
+    const matchWord = band === "high" ? "Strong match" : band === "mid" ? "Good match" : "Close call";
     // Deterministic honesty: always disclose brands removed by a remembered preference,
     // so an avoided brand never silently vanishes (doesn't depend on the LLM remembering to say it).
     const exclNote = (d.prefExcluded && d.prefExcluded.length)
@@ -384,7 +386,7 @@
       ? `<p class="c-rec-excl">ⓘ These are early estimates — I haven't finished fact-checking this category yet.</p>` : "";
     return `<div class="c-rec"><div class="c-rec-head">
         <span class="c-rec-title">${title}</span>
-        <span class="c-rec-conf ${band}">${d.confidence}% confident</span>
+        <span class="c-rec-conf ${band}">${matchWord} · ${d.confidence}%</span>
       </div>${cards}${exclNote}${seedNote}</div>`;
   }
   function botMsg(text, ids, decision) {
