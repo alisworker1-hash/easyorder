@@ -48,9 +48,19 @@ export default {
     try { body = await request.json(); } catch { return j({ error: "invalid JSON" }, 400, cors); }
     if (!Array.isArray(body.messages)) return j({ error: "messages[] required" }, 400, cors);
 
+    // Always keep the system prompt (the catalog grounding) and cap only the recent history,
+    // so a long chat can never slice the catalog away or re-send a huge transcript.
+    const _m = body.messages;
+    const _sys = _m[0] && _m[0].role === "system" ? [_m[0]] : [];
+    const _rest = _m.slice(_sys.length);
+    let _cut = Math.max(0, _rest.length - 16);
+    while (_cut < _rest.length && _rest[_cut].role !== "user") _cut++;   // begin on a clean user turn
+    const _trimmed = [..._sys, ..._rest.slice(_cut)];
+    // belt-and-suspenders: never lead with an orphaned tool result (some endpoints 400 on it)
+    while (_trimmed.length > _sys.length && _trimmed[_sys.length].role === "tool") _trimmed.splice(_sys.length, 1);
     const payload = {
       model: env.LLM_MODEL || body.model || DEFAULT_MODEL,
-      messages: body.messages.slice(-24),
+      messages: _trimmed,
       max_tokens: Math.min(Number(body.max_tokens) || 700, 1024),
       temperature: Math.min(Math.max(Number(body.temperature ?? 0.3), 0), 1),
     };

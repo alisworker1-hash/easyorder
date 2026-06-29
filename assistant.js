@@ -23,9 +23,10 @@
 
   /* ---------- catalog grounding ---------- */
   function catalogText() {
+    // Compact: scoreDecision() has every attribute locally, so the model only needs id/name/price
+    // to ground its replies and call add_to_cart. Keeping this terse cuts per-turn tokens a lot.
     return DATA.products.map((p) =>
-      `${p.id} | ${p.name} (${p.brand}) | ${p.unit} | $${p.price.toFixed(2)}` +
-      `${p.priceWas && p.priceWas !== p.price ? ` (was $${p.priceWas.toFixed(2)})` : ""} | stock:${p.stock}`
+      `${p.id} | ${p.name} | $${p.price.toFixed(2)}${p.stock === "out" ? " | OUT" : ""}`
     ).join("\n");
   }
   function systemPrompt() {
@@ -39,7 +40,8 @@
       "You may ONLY recommend items from the catalog below. Never invent items or prices.",
       "Always quote the EXACT price shown. If an item's stock is 'out', say so and don't add it.",
       "When the shopper wants items, call add_to_cart with the exact ids and confirm what you added",
-      "and the running total. To review or pay, call open_cart — the shopper taps 'Pay with Apple",
+      "and the running total. If you're unsure what's currently in the cart, call view_cart first.",
+      "To review or pay, call open_cart — the shopper taps 'Pay with Apple",
       "Pay' themselves; never claim you charged them. Keep replies to 1–3 short sentences.",
       "Never upsell or pressure the shopper — only add what they actually ask for. Be calm and patient.",
       "",
@@ -65,7 +67,7 @@
       "invent or infer preferences. For an allergy or material you can't verify against the catalog,",
       "treat it as a caution — say you can't confirm an item is safe; never guarantee that it is.",
       "",
-      "CATALOG (id | name | unit | price | stock):",
+      "CATALOG (id | name | price; 'OUT' = out of stock). Use search_catalog if you need more detail:",
       catalogText(),
     ].join("\n");
   }
@@ -239,6 +241,13 @@
   async function liveTurn() {
     surfaced = [];
     lastRec = null;
+    // Never re-send a growing transcript: keep the system prompt + the recent turns (from a clean
+    // user boundary so we don't orphan a tool result). Caps tokens regardless of the proxy.
+    if (A.convo.length > 14) {
+      let start = A.convo.length - 12;
+      while (start > 1 && A.convo[start].role !== "user") start--;
+      A.convo = [A.convo[0], ...A.convo.slice(start)];
+    }
     let guard = 0;
     while (guard++ < 4) {
       const res = await fetch(proxyUrl(), { method: "POST", headers: { "Content-Type": "application/json" },
@@ -268,7 +277,40 @@
       return p && p.reorderDays > 0 && !cart[id] && daysSince(h[id]) >= p.reorderDays;
     });
   }
+  /* Deterministic fast-path: unambiguous intents that need NO model call (reorder, sale, cart).
+     Returns a reply, or null to defer to the LLM (live) / the fuller demo logic. Considered
+     purchases return null so the assistant can still ask its gating questions. */
+  function quickDeterministic(text) {
+    const t = text.toLowerCase();
+    // A bare keyword must NOT hijack a question, refusal, or deliberation — send those to the model.
+    // (e.g. "I don't want to reorder…", "can I pay later?", "should I wait for a sale?")
+    if (/\b(don'?t|do not|not|never|instead|rather|wait|later|should|can i|could i|would i|what if|without|why|how|versus|vs|or should|hold off|cancel|stop)\b/.test(t)) return null;
+    const dec = findDecision(t);
+    const accessory = /\b(paper|ink|bag|bags|filter|filters|cartridge|cartridges|toner|refill|refills|roll|rolls)\b/.test(t);
+    if (dec && !accessory) return null;
+    if (/\b(usual|usuals|reorder|again|restock)\b/.test(t) || /\bwhat do i (usually|normally|often) buy\b/.test(t)) {
+      let ids = dueReorderIds();
+      if (!ids.length) ids = Object.keys(safeHistory()).filter((id) => PRODUCTS[id]);
+      if (!ids.length) ids = ["milk-2pct-gal", "bread-whole-wheat", "eggs-large-dozen"].filter((id) => PRODUCTS[id]);
+      ids = ids.slice(0, 4).filter((id) => PRODUCTS[id].stock !== "out");
+      ids.forEach((id) => addToCart(id, 1));
+      const sum = ids.reduce((a, id) => a + PRODUCTS[id].price, 0);
+      const real = (typeof window !== "undefined" && window.hasRealOrders && window.hasRealOrders());
+      const lead = real ? "Done! I added your usual items" : "Done! I added some staples people often reorder";
+      return { text: `${lead} — that's ${money(sum)} so far. Tap a price if you'd like more, or say "checkout" when ready.`, ids };
+    }
+    if (/\b(sale|deal|deals|cheaper|discount|save|saving)\b/.test(t)) {
+      const ids = DATA.products.filter((p) => p.priceWas && p.price < p.priceWas)
+        .sort((a, b) => (b.priceWas - b.price) - (a.priceWas - a.price)).slice(0, 4).map((p) => p.id);
+      if (ids.length) return { text: `Here's what dropped in price today — want me to add any?`, ids };
+    }
+    if (/\b(cart|checkout|check out|pay|buy now|place order)\b/.test(t)) {
+      openCart(); return { text: "I've opened your cart — tap 'Pay with Apple Pay' when you're ready.", ids: [] };
+    }
+    return null;
+  }
   function demoTurn(text) {
+    const q = quickDeterministic(text); if (q) return q;
     const t = text.toLowerCase();
     const dec0 = findDecision(t);
     // a consumable/accessory ("printer paper", "vacuum bags") is NOT a request to compare the device
@@ -295,26 +337,6 @@
           (close ? ` It's a close call though — here's how the top ${r.finalists.length} stack up:` : ` Here's how the top ${r.finalists.length} compare — tap "Add" on the one you like:`);
         return { text: txt, ids: r.finalists.map((f) => f.id), decision: r };
       }
-    }
-    if (/\b(usual|usuals|reorder|again|restock)\b/.test(t)) {
-      let ids = dueReorderIds();
-      if (!ids.length) ids = Object.keys(safeHistory()).filter((id) => PRODUCTS[id]);
-      if (!ids.length) ids = ["milk-2pct-gal", "bread-whole-wheat", "eggs-large-dozen"].filter((id) => PRODUCTS[id]);
-      ids = ids.slice(0, 4).filter((id) => PRODUCTS[id].stock !== "out");
-      ids.forEach((id) => addToCart(id, 1));
-      const sum = ids.reduce((a, id) => a + PRODUCTS[id].price, 0);
-      // Only call them "your usual" items if there's a REAL purchase on record — otherwise it's demo filler.
-      const real = (typeof window !== "undefined" && window.hasRealOrders && window.hasRealOrders());
-      const lead = real ? "Done! I added your usual items" : "Done! I added some staples people often reorder";
-      return { text: `${lead} — that's ${money(sum)} so far. Tap a price if you'd like more, or say "checkout" when ready.`, ids };
-    }
-    if (/\b(sale|deal|deals|cheaper|discount|save|saving)\b/.test(t)) {
-      const ids = DATA.products.filter((p) => p.priceWas && p.price < p.priceWas)
-        .sort((a, b) => (b.priceWas - b.price) - (a.priceWas - a.price)).slice(0, 4).map((p) => p.id);
-      if (ids.length) return { text: `Here's what dropped in price today — want me to add any?`, ids };
-    }
-    if (/\b(cart|checkout|check out|pay|buy now|place order)\b/.test(t)) {
-      openCart(); return { text: "I've opened your cart — tap 'Pay with Apple Pay' when you're ready.", ids: [] };
     }
     const addMatch = t.match(/\b(add|need|want|buy|get)\b\s+(.*)/);
     if (addMatch) {
@@ -434,7 +456,19 @@
     userMsg(text); el("chatInput").value = "";
     A.busy = true; typing(true);
     try {
-      const reply = live() ? (A.convo.push({ role: "user", content: text }), await liveTurn()) : demoTurn(text);
+      let reply;
+      if (live()) {
+        // Deterministic fast-path first — clear intents cost $0 in AI tokens.
+        reply = quickDeterministic(text);
+        if (reply) {
+          A.convo.push({ role: "user", content: text }, { role: "assistant", content: reply.text }); // keep transcript coherent
+        } else {
+          A.convo.push({ role: "user", content: text });
+          reply = await liveTurn();
+        }
+      } else {
+        reply = demoTurn(text); // demoTurn already calls quickDeterministic internally
+      }
       typing(false); botMsg(reply.text, reply.ids, reply.decision);
     } catch (err) {
       typing(false);
