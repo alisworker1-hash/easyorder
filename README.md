@@ -5,6 +5,13 @@ procurement website for groceries, household goods, personal care, and health & 
 items. Built as a **static site** (plain HTML/CSS/JS, no build step) and deployed on
 GitHub Pages — same approach as the sibling `dupecheck` project.
 
+## Why this exists
+A demo of a slower-paced, no-surprises shopping flow — exact prices, warnings shown
+*before* checkout instead of after, and an AI assistant that only knows the real
+catalog (it can't invent products or prices). The AI key is held server-side in a
+Cloudflare Worker (`proxy/`), never shipped to the browser — the same pattern a
+production client site would use, not a demo shortcut.
+
 ## Why it's different from a plain chatbot
 - **Exact prices, always.** Every price is shown to the cent (`$3.79`, never "about $4").
   Price changes are flagged up front — green when something dropped, amber when it rose.
