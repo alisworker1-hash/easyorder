@@ -1,8 +1,28 @@
 # EasyOrder - Architecture
 
-> How the platform is structured so EasyOrder Home and EasyOrder Pro share **one
-> procurement engine**, business logic stays independent of UI, and integrations stay
-> swappable. Aligns to [PRODUCT_VISION.md](PRODUCT_VISION.md).
+> How the platform is structured so EasyOrder Home and EasyOrder Pro share **two shared
+> engines** (Supplier Discovery + Procurement Intelligence), business logic stays
+> independent of UI, and integrations stay swappable. Aligns to
+> [PRODUCT_VISION.md](PRODUCT_VISION.md).
+
+## The platform is a Procurement Discovery Platform
+
+EasyOrder helps buyers **discover the best supplier for a need**, then recommends the best
+path. Two engines, in order:
+
+1. **Supplier Discovery Engine** (`core/discovery.js`, see [DISCOVERY.md](DISCOVERY.md)) -
+   decides WHO should be considered. Produces the supplier universe *before* pricing, from
+   national retailers to local family-owned businesses.
+2. **Procurement Intelligence / Recommendation** (`core/recommend.js` +
+   `core/intelligence.js`, see [INTELLIGENCE.md](INTELLIGENCE.md)) - decides who WINS, once
+   information is gathered.
+
+```
+Need -> Understand -> DISCOVER suppliers -> Gather info -> Procurement Intelligence
+     -> Recommendation -> Order -> Learn (supplier memory)
+```
+
+Discovery comes before pricing. That ordering drives the layering below.
 
 ## Guiding constraints
 
@@ -23,9 +43,10 @@
 │    RFQs, Suppliers, Orders, Assistant                       │
 │  • Universal Command Bar (intent → workspace)               │
 ├─────────────────────────────────────────────────────────────┤
-│  CORE - Procurement Engine (/core, no DOM)                  │
-│  models · storage · money · suppliers · rfq · recommend ·   │
-│  intent                                                     │
+│  CORE - shared engines (/core, no DOM)                     │
+│  DISCOVERY: discovery (universe first, before pricing)     │
+│  INTELLIGENCE: recommend · intelligence (who wins)         │
+│  SHARED: models·storage·money·suppliers·rfq·intent         │
 ├─────────────────────────────────────────────────────────────┤
 │  INTEGRATIONS (/integrations) - adapters behind one         │
 │  interface. Demo adapters now; official APIs later.         │
@@ -54,13 +75,15 @@ easyorder/
 ├── core/                           # NEW - procurement engine, no DOM, ES modules
 │   ├── models.js                   # canonical data models (JSDoc typedefs)
 │   ├── storage.js                  # namespaced localStorage (eo.pro.*, eo.home.*)
-│   ├── money.js                    # exact-cent formatting
+│   ├── money.js                    # exact-cent formatting + displayTotal ("+ Shipping")
 │   ├── suppliers.js                # load + filter the supplier directory
+│   ├── discovery.js                # SUPPLIER DISCOVERY ENGINE - universe before pricing (see DISCOVERY.md)
 │   ├── rfq.js                      # build RFQs from a material list
 │   ├── recommend.js                # recommendation algorithms (pure)
 │   ├── intelligence.js             # confidence, missing fields, next actions, effort (see INTELLIGENCE.md)
 │   └── intent.js                   # command-bar intent routing (rule-based now)
-├── integrations/                   # NEW - adapter interface + demo adapters
+├── integrations/                   # NEW - adapter interfaces + demo adapters
+│   ├── discovery/                  # discovery providers (places/directory/... ); demo now
 │   └── demo/                       # mock pricing/availability, clearly labeled DEMO
 ├── data/                           # NEW - shared demo data
 │   ├── suppliers.json

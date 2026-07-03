@@ -51,15 +51,32 @@ workflow** - generate quote requests, send/prepare them in bulk, and let the use
 responses back. This is a first-class path, not a degraded one: it works for every local
 supplier on day one without any integration.
 
-## Local supplier discovery (planned adapter kind: "discovery")
+## Two adapter families
 
-Users want EasyOrder to find suppliers **near them** (local bolt houses, lumber yards,
-specialty distributors), not just national chains. This becomes a `discovery` adapter:
-given a category + location, return candidate local suppliers (name, address, distance,
-phone, site, walk-in/will-call) sourced from legitimate search/maps APIs. Discovered
-suppliers enter the directory as `price_unconfirmed` / `in_store_verification_needed`
-candidates and are natural **RFQ targets** - the email workflow closes the loop where no
-published pricing exists. No scraping; official search/places APIs only.
+EasyOrder has **two** provider seams, one per engine, each provider-agnostic:
+
+1. **Discovery providers** (`DiscoveryProvider`, see [DISCOVERY.md](DISCOVERY.md)) - find
+   WHO exists for a need. `discover(need, opts) -> SupplierCandidate[]`. Runs before pricing.
+2. **Supplier adapters** (`SupplierAdapter`, above) - gather price/stock/lead for suppliers
+   already discovered.
+
+### Discovery provider kinds (interfaces only; no live discovery yet)
+
+| kind | Source | Discovers |
+|---|---|---|
+| `demo` | curated `data/suppliers.json` | the only one built today; proves the interface |
+| `places` | Google Business / Maps places APIs | local businesses by category + location |
+| `directory` | supplier directories | listed distributors and vendors |
+| `industry-db` | industry databases | specialty manufacturers, wholesalers |
+| `retailer-api` | official retailer APIs | national/regional retail coverage |
+| `merchant-profile` | merchant-submitted profiles | businesses that opt in to EasyOrder |
+| `regional-catalog` | maintained regional catalogs | curated local/regional supply |
+
+The engine iterates whatever providers are registered - it never names one - so adding a
+live provider is registration, not a rewrite. Discovered suppliers with no published pricing
+enter as `price_unconfirmed` / `in_store_verification_needed` candidates and are natural
+**RFQ targets**; the email workflow closes the loop. No scraping; official APIs, opt-in
+merchant profiles, and licensed directories only.
 
 ## Data provenance
 

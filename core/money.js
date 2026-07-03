@@ -18,3 +18,10 @@ export function sumCents(centsList) { return centsList.reduce((a, c) => a + (Num
 
 /* round a dollar amount to a clean 2-decimal number (for stored totals) */
 export function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+/* THE total-display rule for all UI surfaces: every total shows its cost, and when
+   shipping is not confirmed it reads "$16.32 + Shipping" instead of implying free.
+   Pass shippingKnown=true for pickup totals and fee-inclusive totals. */
+export function displayTotal(n, shippingKnown = true) {
+  return money(n) + (shippingKnown ? "" : " + Shipping");
+}

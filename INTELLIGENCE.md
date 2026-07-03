@@ -12,7 +12,15 @@ missing fields) and recommends the **next best action**. An option with a gap is
 candidate to advance, not a row to delete. Unconfirmed is never treated as $0 and never
 treated as unavailable.
 
-## Confidence score (0-100)
+## Two kinds of confidence
+
+- **Supplier-level confidence** (category-fit): how confident we are a supplier serves the
+  need's category. Produced by the Supplier Discovery Engine, before pricing (see
+  [DISCOVERY.md](DISCOVERY.md)). Flows through as `supplierSummaries[].supplierConfidence`.
+- **Per-line confidence** (price/spec-fit): the score below, per supplier/item option, after
+  a quote exists.
+
+## Per-line confidence score (0-100)
 
 Every supplier/item option gets a score, anchored to bands:
 

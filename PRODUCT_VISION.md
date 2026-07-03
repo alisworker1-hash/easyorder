@@ -4,9 +4,31 @@
 > Companion docs: [ARCHITECTURE.md](ARCHITECTURE.md), [PROCUREMENT_MVP.md](PROCUREMENT_MVP.md),
 > [ROADMAP.md](ROADMAP.md), [INTEGRATIONS.md](INTEGRATIONS.md).
 
+## North Star
+
+**EasyOrder exists to help buyers discover the best supplier - not the biggest supplier -
+for every procurement need.** The best answer may come from a national retailer, a regional
+distributor, or a local family-owned business. EasyOrder's job is to intelligently discover
+those suppliers, gather the information needed to compare them, and recommend the best
+procurement path based on the buyer's priorities. That mission guides every architectural
+decision.
+
+EasyOrder is **not** trying to become another Amazon or Home Depot, and it does **not** try
+to own the transaction. Discovery is the value.
+
 ## What EasyOrder Is
 
-EasyOrder is an **AI-powered procurement platform** - the operating system for purchasing.
+EasyOrder is an **AI-powered Procurement Discovery Platform** - the operating system for
+purchasing. It searches for **solutions, not products**: a need ("I need a replacement
+window screen") expands into the kinds of businesses that could solve it (screen-repair
+services, glass companies, window companies, hardware stores, mobile repair, handymen,
+manufacturers), then finds and ranks the specific suppliers that best fit the buyer's
+priorities.
+
+Two engines power it (see [ARCHITECTURE.md](ARCHITECTURE.md) and [DISCOVERY.md](DISCOVERY.md)):
+**Supplier Discovery** determines who should even be considered (the universe, before
+pricing); **Procurement Intelligence** determines who should win (the recommendation, after
+information is gathered).
 
 Its job is to eliminate the friction between **identifying a need** and **acquiring the
 right product or service**. Whether someone is buying groceries, building a shed,
@@ -93,6 +115,20 @@ suppliers, lumber yards, specialty vendors.
 **No scraping. No bypassing authentication. No account linking yet.** Architect so future
 integrations connect through official APIs, partner programs, affiliate feeds, email
 workflows, or other supported methods (see [INTEGRATIONS.md](INTEGRATIONS.md)).
+
+**Discover suppliers, don't just list the ones the buyer named.** Given a need, EasyOrder
+discovers candidates across many supplier categories - industrial distributors, hardware
+stores, auto parts stores, big-box retailers, local bolt houses, machine shops, wholesalers,
+specialty manufacturers, service providers - and ranks them by fit and proximity.
+
+**Local businesses are part of the mission.** EasyOrder actively surfaces local suppliers a
+buyer would otherwise never find, so they compete on service, expertise, responsiveness, and
+proximity - not advertising budget. This is a core company value, encoded in discovery
+ranking (see [DISCOVERY.md](DISCOVERY.md)).
+
+**Never hide an option.** If a price, dimension, or detail is missing, EasyOrder shows the
+supplier, explains what is missing, and recommends the next best action - it never drops a
+supplier just because one field is unconfirmed.
 
 ## Development Principles
 

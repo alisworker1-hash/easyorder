@@ -10,12 +10,16 @@ The existing senior-friendly storefront + grounded AI assistant + LLM proxy. Thi
 ## Phase 1 - Foundation + Pro procurement MVP (current)
 Build the shared engine and the contractor-first procurement thread.
 
-- Stand up `/core` (models, storage, money, suppliers, rfq, recommend, intent) - UI-free.
-- Stand up `/data` demo supplier directory + "build a shed" sample project.
+- Stand up `/core` (models, storage, money, suppliers, discovery, rfq, recommend,
+  intelligence, intent) - UI-free.
+- **Supplier Discovery Engine** with the demo provider + solution-category expansion +
+  supplier-level confidence (see [DISCOVERY.md](DISCOVERY.md)). Interface ready for live
+  providers; no live discovery yet.
+- Stand up `/data` demo supplier directory + "build a shed" and fastener sample scenarios.
 - Stand up `/pro` workspace shell with the primary nav and the MVP workflow
   (see [PROCUREMENT_MVP.md](PROCUREMENT_MVP.md)).
 - Universal command bar with **rule-based** intent routing.
-- Recommendation across all five axes (deterministic, no AI spend).
+- Recommendation across all five axes + procurement intelligence (deterministic, no AI spend).
 - Everything additive; storefront and proxy untouched.
 
 **Exit:** a contractor can run material list → suppliers → RFQs → quote entry → comparison →
@@ -31,8 +35,11 @@ Layer the LLM in where it earns its cost, through the existing proxy.
 - Still no AI-generated BOM (deferred); usage stays bounded by the proxy budget cap.
 
 ## Phase 3 - Real integrations + Pro subscription
-- `/integrations` gains official-API / affiliate / partner adapters behind the existing
-  interface (see [INTEGRATIONS.md](INTEGRATIONS.md)).
+- **Live discovery providers** behind the `DiscoveryProvider` interface: Places/Maps,
+  supplier directories, industry databases, retailer APIs, merchant-submitted profiles,
+  regional catalogs (see [DISCOVERY.md](DISCOVERY.md) and [INTEGRATIONS.md](INTEGRATIONS.md)).
+- `/integrations` gains official-API / affiliate / partner **supplier adapters** for
+  price/stock behind the existing interface.
 - Supplier catalogs from supported feeds replace demo data where available.
 - Orders workspace: turn an accepted quote into a tracked order.
 - Subscription/billing for EasyOrder Pro; team workflows (multi-user projects).

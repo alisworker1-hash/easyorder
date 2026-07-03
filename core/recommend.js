@@ -325,7 +325,8 @@ export function recommend(materials, quotes, opts = {}) {
         if (st !== MATCH_STATUS.EXACT_CONFIRMED) exactOnly = false;
       } else { candidate++; exactOnly = false; }
     }
-    const effort = procurementEffort(q, supplierOf(q.supplierId), materials);
+    const sup = supplierOf(q.supplierId);
+    const effort = procurementEffort(q, sup, materials);
     return {
       supplierId: q.supplierId, supplierName: nameOf(q.supplierId),
       fulfillment: q.fulfillment,
@@ -335,6 +336,10 @@ export function recommend(materials, quotes, opts = {}) {
       confirmedPartsTotal: fromCents(cents),
       shippingKnown: shippingKnown(q),
       effort: effort.score, convenience: effort.convenience, effortFactors: effort.factors,
+      /* supplier-level confidence from the discovery engine, when present (category-fit,
+         distinct from per-line price confidence). */
+      supplierConfidence: sup.supplierConfidence ?? null,
+      supplierCategory: sup.supplierCategory ?? null,
     };
   }).sort((a, b) => b.itemsConfirmed - a.itemsConfirmed || a.confirmedPartsTotal - b.confirmedPartsTotal);
 
