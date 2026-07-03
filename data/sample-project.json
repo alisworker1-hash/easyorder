@@ -1,0 +1,71 @@
+{
+  "_note": "DEMO DATA — the 'build a shed' procurement scenario used to seed the Pro prototype. Material ids are stable so sampleQuotes can reference them. Prices/leads are illustrative.",
+  "project": {
+    "id": "prj_shed", "type": "project", "name": "8x12 Backyard Shed",
+    "client": "Demo — Smith Residence",
+    "notes": "Gable-roof storage shed on a gravel pad. Contractor already knows the materials.",
+    "neededBy": "2026-07-20"
+  },
+  "shoppingList": {
+    "id": "list_shed", "type": "shoppingList", "name": "Shed materials", "projectId": "prj_shed"
+  },
+  "materials": [
+    { "id": "shed-2x4",      "item": "2x4x8 Pressure-Treated Lumber", "qty": 42, "unit": "each",  "size": "2in x 4in x 8ft", "spec": "PT #2 SYP, ground-contact", "category": "lumber",    "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-osb",      "item": "7/16in OSB Sheathing 4x8",      "qty": 14, "unit": "sheet", "size": "4ft x 8ft",       "spec": "Exposure 1",               "category": "sheathing", "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-shingles", "item": "Architectural Shingles",         "qty": 6,  "unit": "bundle","size": "33.3 sq ft/bundle","spec": "30-yr, charcoal",          "category": "roofing",   "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-dripedge", "item": "Aluminum Drip Edge 10ft",        "qty": 6,  "unit": "each",  "size": "10ft",            "spec": "white",                    "category": "roofing",   "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-concrete", "item": "Concrete Mix 60lb",              "qty": 12, "unit": "bag",   "size": "60 lb",           "spec": "high-early strength",      "category": "concrete",  "fulfillment": "pickup",   "notes": "for post footings" },
+    { "id": "shed-screws",   "item": "Exterior Wood Screws 5lb",       "qty": 2,  "unit": "box",   "size": "#9 x 2-1/2in",    "spec": "coated deck screws",       "category": "fasteners", "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-door",     "item": "36in Prehung Exterior Door",     "qty": 1,  "unit": "each",  "size": "36in x 80in",     "spec": "steel, primed, right-hand","category": "doors",     "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-window",   "item": "24x36 Single-Hung Window",       "qty": 1,  "unit": "each",  "size": "24in x 36in",     "spec": "vinyl, white",             "category": "windows",   "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-housewrap","item": "House Wrap 3ft x 100ft",         "qty": 1,  "unit": "roll",  "size": "3ft x 100ft",     "spec": "",                         "category": "sheathing", "fulfillment": "delivery", "notes": "" },
+    { "id": "shed-hinges",   "item": "Heavy-Duty Hinge & Latch Set",   "qty": 1,  "unit": "set",   "size": "",                "spec": "galvanized",               "category": "hardware",  "fulfillment": "delivery", "notes": "for the shed door" }
+  ],
+  "suppliers": ["home-depot", "lowes", "abc-lumber"],
+  "sampleQuotes": [
+    {
+      "id": "quote_hd", "type": "quote", "rfqId": null, "supplierId": "home-depot",
+      "deliveryFee": 79.00, "fulfillment": "delivery", "receivedAt": "2026-06-29", "notes": "Pro desk quote.",
+      "lineItems": [
+        { "materialId": "shed-2x4",      "unitPrice": 5.97,  "available": true, "leadDays": 3 },
+        { "materialId": "shed-osb",      "unitPrice": 18.98, "available": true, "leadDays": 3 },
+        { "materialId": "shed-shingles", "unitPrice": 38.50, "available": true, "leadDays": 4 },
+        { "materialId": "shed-dripedge", "unitPrice": 12.45, "available": true, "leadDays": 3 },
+        { "materialId": "shed-concrete", "unitPrice": 6.85,  "available": true, "leadDays": 3 },
+        { "materialId": "shed-screws",   "unitPrice": 28.97, "available": true, "leadDays": 2 },
+        { "materialId": "shed-door",     "unitPrice": 189.00,"available": true, "leadDays": 5 },
+        { "materialId": "shed-window",   "unitPrice": 148.00,"available": true, "leadDays": 5 },
+        { "materialId": "shed-housewrap","unitPrice": 164.00,"available": true, "leadDays": 3 },
+        { "materialId": "shed-hinges",   "unitPrice": 22.50, "available": true, "leadDays": 2 }
+      ]
+    },
+    {
+      "id": "quote_lowes", "type": "quote", "rfqId": null, "supplierId": "lowes",
+      "deliveryFee": 89.00, "fulfillment": "delivery", "receivedAt": "2026-06-29", "notes": "Contractor desk quote.",
+      "lineItems": [
+        { "materialId": "shed-2x4",      "unitPrice": 5.78,  "available": true, "leadDays": 2 },
+        { "materialId": "shed-osb",      "unitPrice": 19.45, "available": true, "leadDays": 2 },
+        { "materialId": "shed-shingles", "unitPrice": 36.95, "available": true, "leadDays": 3 },
+        { "materialId": "shed-dripedge", "unitPrice": 11.98, "available": true, "leadDays": 2 },
+        { "materialId": "shed-concrete", "unitPrice": 7.15,  "available": true, "leadDays": 2 },
+        { "materialId": "shed-screws",   "unitPrice": 26.99, "available": true, "leadDays": 2 },
+        { "materialId": "shed-door",     "unitPrice": 195.00,"available": true, "leadDays": 4 },
+        { "materialId": "shed-window",   "unitPrice": 139.00,"available": true, "leadDays": 4 },
+        { "materialId": "shed-housewrap","unitPrice": 158.00,"available": true, "leadDays": 2 },
+        { "materialId": "shed-hinges",   "unitPrice": 24.00, "available": true, "leadDays": 2 }
+      ]
+    },
+    {
+      "id": "quote_abc", "type": "quote", "rfqId": null, "supplierId": "abc-lumber",
+      "deliveryFee": 60.00, "fulfillment": "delivery", "receivedAt": "2026-06-30", "notes": "Local yard — pickup available same day.",
+      "lineItems": [
+        { "materialId": "shed-2x4",      "unitPrice": 5.25,  "available": true, "leadDays": 1 },
+        { "materialId": "shed-osb",      "unitPrice": 17.50, "available": true, "leadDays": 1 },
+        { "materialId": "shed-shingles", "unitPrice": 35.75, "available": true, "leadDays": 2 },
+        { "materialId": "shed-dripedge", "unitPrice": 10.95, "available": true, "leadDays": 1 },
+        { "materialId": "shed-concrete", "unitPrice": 6.45,  "available": true, "leadDays": 1 },
+        { "materialId": "shed-housewrap","unitPrice": 152.00,"available": true, "leadDays": 1 }
+      ]
+    }
+  ]
+}
