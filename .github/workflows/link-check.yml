@@ -1,0 +1,29 @@
+name: Link Check
+
+# easyorder has no package manager and no lockfile (static HTML/JS/CSS plus
+# a dependency-free Cloudflare Worker in proxy/), so OSV-Scanner has nothing
+# to scan. The equivalent free, zero-maintenance check for a static site is
+# a broken-link/HTML sanity pass — catches dead links and malformed HTML
+# before a client ever sees them.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-mail './**/*.html'
+          fail: true
