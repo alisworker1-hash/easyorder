@@ -106,16 +106,31 @@ export function createSupplierMemory() {
   };
 }
 
+/* Shipping policy - how a supplier charges for delivery, used to ESTIMATE landed cost
+   before checkout (see core/shipping.js). kind:
+     "free"       always free
+     "free_over"  free at/over freeOverThreshold; flatRate/estimate applies under it
+     "flat"       flatRate for a small order
+     "estimate"   a researched estimate figure (estimate)
+     "calculated" shown only in cart (no pre-checkout number) -> unknown
+     "quote_needed" / "unknown"
+   source: "confirmed" | "research" | "policy-page". */
+export function createShippingPolicy({ kind = "unknown", flatRate = null, freeOverThreshold = null,
+  estimate = null, minOrderValue = null, source = "policy-page", note = "" } = {}) {
+  return { kind, flatRate, freeOverThreshold, estimate, minOrderValue, source, note };
+}
+
 export function createSupplier({
   name, type = SUPPLIER_TYPE.LOCAL, categories = [], email = "", phone = "",
   location = "", distanceMiles = null, deliveryAvailable = true, leadTimeNote = "", logo = "🏪",
-  memory = null,
+  shippingPolicy = null, memory = null,
 } = {}) {
   return {
     id: uid("sup"), type, name: name || "", categories,
     email, phone, location,
     distanceMiles: distanceMiles == null ? null : Number(distanceMiles),
     deliveryAvailable, leadTimeNote, logo,
+    shippingPolicy: shippingPolicy || null,
     memory: memory || createSupplierMemory(),
   };
 }

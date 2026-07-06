@@ -592,7 +592,13 @@
           "status": "exact_confirmed",
           "matchNote": "product #2586"
         }
-      ]
+      ],
+      "shipping": {
+        "cost": 12.1,
+        "confidence": "confirmed",
+        "source": "cart estimator to 92029 (2026-07)",
+        "note": "USPS Economy 3-7 days; UPS Ground $19.14; pickup $0"
+      }
     },
     {
       "id": "quote_albany_web",
@@ -766,7 +772,13 @@
           "leadDays": 3,
           "status": "exact_confirmed"
         }
-      ]
+      ],
+      "shipping": {
+        "cost": 10.0,
+        "confidence": "confirmed",
+        "source": "cart to 92029 (2026-07)",
+        "note": "Shop Pay computed $10.00 economical shipping; order under $200 free-ship threshold"
+      }
     },
     {
       "id": "quote_ababa_local",

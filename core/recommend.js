@@ -14,6 +14,7 @@
 import { toCents, fromCents, round2 } from "./money.js";
 import { MATCH_STATUS, CONFIRMED_STATUSES, deriveLineStatus } from "./models.js";
 import { evaluateOption, procurementEffort, shippingKnown, ACTION } from "./intelligence.js";
+import { estimateShipping, landedTotal, meetsMinimum } from "./shipping.js";
 
 const STATUS_REASON = {
   [MATCH_STATUS.PRICE_UNCONFIRMED]: "item exists but the price could not be confirmed",
@@ -240,6 +241,18 @@ function rankPickupOptions(materials, quotes, nameOf) {
   return options;
 }
 
+/* Per-supplier recommended next action, derived from coverage / minimum / shipping state.
+   Distinct from the per-line nextAction: this is "what do I do with THIS supplier". */
+function supplierAction(s) {
+  if (s.itemsConfirmed === 0) return { action: "gather_quotes", label: "Get quotes / verify availability" };
+  if (!s.meetsMin.ok) return { action: "add_items_or_skip",
+    label: `Add $${s.meetsMin.shortfall.toFixed(2)} to reach the $${s.meetsMin.minOrderValue} minimum, or skip` };
+  if (s.itemsConfirmed < s.itemsTotal) return { action: "verify_remaining", label: "Verify the remaining item(s)" };
+  if (s.fulfillment === "pickup") return { action: "buy_now", label: "Buy now - in-store pickup" };
+  if (s.shippingKnown) return { action: "order_online", label: "Order online (shipping confirmed)" };
+  return { action: "confirm_shipping", label: "Confirm shipping, then order" };
+}
+
 /* ---- public API ---- */
 
 export function recommend(materials, quotes, opts = {}) {
@@ -327,27 +340,45 @@ export function recommend(materials, quotes, opts = {}) {
     }
     const sup = supplierOf(q.supplierId);
     const effort = procurementEffort(q, sup, materials);
+    const partsTotal = fromCents(cents);
+    /* shipping estimate + landed total (parts + shipping when known) */
+    const shipping = estimateShipping(q, sup, partsTotal);
+    const landed = landedTotal(partsTotal, shipping);
+    const minOrder = meetsMinimum(sup, partsTotal); // vendor dollar floor, if any
+    const recommendedAction = supplierAction({
+      itemsConfirmed: confirmed, itemsTotal: materials.length, meetsMin: minOrder,
+      fulfillment: q.fulfillment, shippingKnown: landed.shippingKnown });
     return {
       supplierId: q.supplierId, supplierName: nameOf(q.supplierId),
       fulfillment: q.fulfillment,
       itemsConfirmed: confirmed, itemsCandidate: candidate, itemsTotal: materials.length,
       fullConfirmedCoverage: confirmed === materials.length,
       allExactConfirmed: exactOnly && confirmed === materials.length,
-      confirmedPartsTotal: fromCents(cents),
-      shippingKnown: shippingKnown(q),
+      confirmedPartsTotal: partsTotal,
+      /* shipping is now a first-class, estimated field with its own confidence */
+      shipping, shippingKnown: landed.shippingKnown,
+      landedTotal: landed.total, landedShippingKnown: landed.shippingKnown,
+      /* minimum-order gate: buyable only if the order meets any vendor floor */
+      meetsMinimum: minOrder.ok, minOrderValue: minOrder.minOrderValue, minOrderShortfall: minOrder.shortfall,
+      recommendedAction,
       effort: effort.score, convenience: effort.convenience, effortFactors: effort.factors,
       /* supplier-level confidence from the discovery engine, when present (category-fit,
          distinct from per-line price confidence). */
       supplierConfidence: sup.supplierConfidence ?? null,
       supplierCategory: sup.supplierCategory ?? null,
     };
-  }).sort((a, b) => b.itemsConfirmed - a.itemsConfirmed || a.confirmedPartsTotal - b.confirmedPartsTotal);
+  }).sort((a, b) => b.itemsConfirmed - a.itemsConfirmed ||
+    // rank full-coverage suppliers by LANDED total when both shipping figures are known,
+    // else fall back to parts (mixing known/unknown landed would be apples-to-oranges)
+    ((a.landedShippingKnown && b.landedShippingKnown)
+      ? a.landedTotal - b.landedTotal
+      : a.confirmedPartsTotal - b.confirmedPartsTotal));
 
-  /* Headline picks. */
-  const fullCover = supplierSummaries.filter((s) => s.fullConfirmedCoverage);
+  /* Headline picks. Only BUYABLE suppliers (meet any minimum-order floor) can be a pick. */
+  const fullCover = supplierSummaries.filter((s) => s.fullConfirmedCoverage && s.meetsMinimum);
   const bestConvenience = fullCover.slice().sort((a, b) =>
     a.effort - b.effort || a.confirmedPartsTotal - b.confirmedPartsTotal)[0] || null;
-  const bestExactSpec = supplierSummaries.filter((s) => s.allExactConfirmed)
+  const bestExactSpec = supplierSummaries.filter((s) => s.allExactConfirmed && s.meetsMinimum)
     .sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0] || null;
 
   /* Aggregated next actions: the buyer's to-do list for shrinking uncertainty.
@@ -383,6 +414,9 @@ export function recommend(materials, quotes, opts = {}) {
   if (unknownShip.length)
     warnings.push(`${unknownShip.length} delivery supplier(s) have unknown shipping costs; ` +
       `parts totals are before shipping: ` + unknownShip.map((s) => s.supplierName).join(", "));
+  for (const s of supplierSummaries.filter((x) => !x.meetsMinimum && x.itemsConfirmed > 0))
+    warnings.push(`${s.supplierName} requires a $${s.minOrderValue} minimum order; this order ` +
+      `($${s.confirmedPartsTotal.toFixed(2)}) is $${s.minOrderShortfall.toFixed(2)} short and can't be placed as-is.`);
 
   return {
     generatedAt: new Date().toISOString(),

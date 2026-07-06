@@ -78,6 +78,27 @@ enter as `price_unconfirmed` / `in_store_verification_needed` candidates and are
 **RFQ targets**; the email workflow closes the loop. No scraping; official APIs, opt-in
 merchant profiles, and licensed directories only.
 
+## Shipping research boundary (hard rule)
+
+Shipping is gathered as an ESTIMATE with confidence (see `core/shipping.js`), never by
+completing a purchase. Automated research (including subagents) MUST NOT enter checkout
+flows, cart flows with a saved payment method, or any page where a saved address or payment
+method is active. Prefer these sources, in order:
+
+1. Published shipping policy pages
+2. Public product pages
+3. Supplier quote / RFQ email
+4. Manual user-entered shipping quote
+5. User-authorized checkout lookup - only with explicit, case-by-case approval
+
+Rationale: during the yellow-zinc test case, a shipping agent reached a vendor's Shop Pay
+checkout where the buyer's saved address and card auto-populated. It stopped before paying,
+but that is closer to a live transaction than research should ever get. A cell staying
+`estimated` (from a policy page) is always preferable to a `confirmed` number obtained from
+a checkout-adjacent flow. FMW's $10.00 and Bolt Depot's $12.10 in the test data were
+observed before this rule and are retained as confirmed; future numbers follow the ladder
+above.
+
 ## Data provenance
 
 Each supplier record and price carries its source kind so the UI can always show where a

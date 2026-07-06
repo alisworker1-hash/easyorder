@@ -93,7 +93,13 @@
       "location": "Online",
       "deliveryAvailable": true,
       "leadTimeNote": "1-3 days",
-      "logo": "🟨"
+      "logo": "🟨",
+      "shippingPolicy": {
+        "kind": "estimate",
+        "estimate": 0,
+        "source": "policy-page",
+        "note": "Prime-eligible listings ship free; marketplace sellers vary"
+      }
     },
     {
       "id": "abc-lumber",
@@ -177,7 +183,15 @@
       "deliveryAvailable": true,
       "leadTimeNote": "sells singles; shipping terms not published on product pages",
       "logo": "🔩",
-      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed"
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "shippingPolicy": {
+        "kind": "free_over",
+        "freeOverThreshold": 100,
+        "flatRate": null,
+        "minOrderValue": 100,
+        "source": "policy-page",
+        "note": "$100 order minimum; ships free over $100 (so any valid order ships free). Cart is B2B quote-based, no small-order rate."
+      }
     },
     {
       "id": "fmw-fasteners",
@@ -192,7 +206,15 @@
       "deliveryAvailable": true,
       "leadTimeNote": "ships 1-3 business days; free shipping at $200+",
       "logo": "⚙️",
-      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed"
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "shippingPolicy": {
+        "kind": "free_over",
+        "freeOverThreshold": 200,
+        "flatRate": 10.0,
+        "minOrderValue": null,
+        "source": "confirmed",
+        "note": "$10.00 to 92029 confirmed via cart; free over $200"
+      }
     },
     {
       "id": "bolt-depot",
@@ -207,7 +229,16 @@
       "deliveryAvailable": true,
       "leadTimeNote": "sells singles and bulk; prices not machine-readable, check site",
       "logo": "🔩",
-      "_provenance": "real supplier, added from web research 2026-07-03; prices unconfirmed"
+      "_provenance": "real supplier, added from web research 2026-07-03; prices unconfirmed",
+      "shippingPolicy": {
+        "kind": "estimate",
+        "flatRate": null,
+        "freeOverThreshold": null,
+        "estimate": 12.1,
+        "minOrderValue": null,
+        "source": "confirmed",
+        "note": "USPS Economy $12.10 to 92029 (cart estimator); no minimum, no free threshold"
+      }
     },
     {
       "id": "fastenal",
@@ -274,7 +305,12 @@
       "leadTimeNote": "pack quantities; visible web pricing; will-call M-F 7-4:30",
       "logo": "🟥",
       "_provenance": "real supplier, web research 2026-07-03; prices confirmed on public pages",
-      "distanceMiles": 28
+      "distanceMiles": 28,
+      "shippingPolicy": {
+        "kind": "calculated",
+        "source": "policy-page",
+        "note": "next-business-day ship; cost shown at checkout or will-call pickup"
+      }
     },
     {
       "id": "tractor-supply",
@@ -307,7 +343,16 @@
       "deliveryAvailable": true,
       "leadTimeNote": "sells singles; JS-rendered pricing",
       "logo": "🔩",
-      "_provenance": "real supplier, web research 2026-07-03; prices confirmed via browser"
+      "_provenance": "real supplier, web research 2026-07-03; prices confirmed via browser",
+      "shippingPolicy": {
+        "kind": "calculated",
+        "flatRate": null,
+        "freeOverThreshold": null,
+        "estimate": null,
+        "minOrderValue": null,
+        "source": "policy-page",
+        "note": "live USPS/UPS rates capped at $100; no free threshold, no minimum; cheapest = USPS Ground Advantage; exact rate needs checkout registration"
+      }
     },
     {
       "id": "fastener-mart",

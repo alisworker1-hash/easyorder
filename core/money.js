@@ -25,3 +25,15 @@ export function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 export function displayTotal(n, shippingKnown = true) {
   return money(n) + (shippingKnown ? "" : " + Shipping");
 }
+
+/* Landed-cost display for the comparison table: parts + shipping when shipping is known,
+   else "parts + Shipping". `ship` is the object from estimateShipping() in shipping.js.
+   Confirmed shipping shows a clean total; estimated shipping is tagged "(est.)". */
+export function displayLanded(partsSubtotal, ship) {
+  if (ship && ship.cost != null) {
+    const total = round2(Number(partsSubtotal || 0) + Number(ship.cost));
+    if (ship.cost === 0) return money(total) + " (free ship)";
+    return money(total) + (ship.confidence === "confirmed" ? " (incl. ship)" : " (est. ship)");
+  }
+  return money(partsSubtotal) + " + Shipping";
+}
