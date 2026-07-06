@@ -61,6 +61,23 @@ Surfaced by the yellow-zinc test case. Pure engine work, no AI spend:
 - Orders workspace: turn an accepted quote into a tracked order.
 - Subscription/billing for EasyOrder Pro; team workflows (multi-user projects).
 
+## Phase 3.5 - Post-purchase lifecycle (Receive, Resolve, Remember)
+Continue past Buy - the loop most procurement tools skip. Additive `/core` modules + seams
+(see ARCHITECTURE.md); build incrementally, each stage useful on its own.
+
+- **Receiving Engine** (`core/receiving.js`): generate a receiving checklist from an order;
+  record outcomes (complete / missing / wrong / damaged / partial / substituted). Ships first
+  - immediate user value, zero dependencies.
+- **Issue Resolution Engine** (`core/resolution.js`): draft supplier communication for a
+  problem outcome (missing, wrong, damaged, late, expedite, refund/credit, freight
+  reimbursement, accommodation). User approves every message before sending.
+- **Critical Material Monitoring** (Workspace): schedule-critical flags on order lines
+  (required-on-site date, crew scheduled, delay risk); a critical shortage escalates - show
+  business impact, find alternates via Discovery, draft urgent comms, track resolution.
+- **Supplier Reliability Memory**: receiving/resolution outcomes populate objective supplier
+  metrics (accuracy, missing/damaged/wrong rates, resolution time, would-buy-again) that feed
+  discovery ranking and recommendation warnings. Not a star rating.
+
 ## Phase 4 - Consumer track (EasyOrder Home, on the shared engine)
 - Re-home the storefront as a Home surface over `/core`.
 - Consumer procurement use cases: window-screen replacement, auto parts, furniture,

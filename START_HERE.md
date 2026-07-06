@@ -42,6 +42,9 @@ Every feature must align with these. When a design decision is unclear, these br
 
 ## High-Level Architecture
 
+Most procurement tools stop when the order is placed. EasyOrder continues through delivery
+verification and issue resolution - the full lifecycle:
+
 ```
 Need
   ↓  Intent Understanding        - what does the buyer actually need? (command bar)
@@ -50,9 +53,16 @@ Need
   ↓  Procurement Intelligence     - confidence, missing fields, effort, next actions
   ↓  Procurement Strategy Engine  - frame options as strategies (Best Overall, Local, ...)
   ↓  Recommendation Engine        - pick winners per strategy, explain why
-  ↓  Order                        - turn an accepted quote into a tracked order
-  ↓  Learning                     - supplier memory: who responds/prices/delivers best
+  ↓  Buy                          - the user places the order (EasyOrder never auto-buys)
+  ↓  Receive    [future]          - receiving checklist: what actually arrived
+  ↓  Resolve    [future]          - draft supplier communication for problems (user approves)
+  ↓  Remember   [future]          - supplier reliability memory from receiving outcomes
+  ↓  Improve    [future]          - better discovery + recommendations over time
 ```
+
+The lifecycle shorthand: **Need → Discover → Compare → Buy → Receive → Resolve → Remember →
+Improve.** Everything through Buy is built or specced; Receive onward is future architecture
+(see below and ARCHITECTURE.md).
 
 **Each engine's responsibility**
 
@@ -79,6 +89,24 @@ Need
 - **Order** (`Order` model) - a chosen path becomes a tracked order.
 - **Learning** (supplier `memory` seam) - accumulates response times, pricing history,
   reliability, and outcomes so future recommendations improve.
+
+**Post-purchase engines (future - seams only today)**
+
+- **Receiving Engine** - generates a receiving checklist from order lines; the user records
+  what actually arrived (complete / missing / wrong / damaged / partial / substituted).
+  Immediate user value, and it objectively generates supplier reliability data over time.
+- **Issue Resolution Engine** - when receiving finds a problem, drafts professional supplier
+  communication (missing, wrong, damaged, late, expedite, refund/credit, freight
+  reimbursement, accommodation for business costs). EasyOrder advocates for the buyer but
+  **the user approves every message before it is sent** - it never negotiates or makes claims
+  on its own.
+- **Critical Material Monitoring** (Workspace) - line items marked schedule-critical
+  (required-on-site date, crew scheduled, delay risk) are treated differently from a consumer
+  inconvenience: detect shortage -> show business impact -> find alternates -> draft urgent
+  comms -> document -> suggest remedies -> track resolution.
+- **Supplier Reliability Memory** - receiving outcomes feed objective metrics (order accuracy,
+  missing/damaged/wrong rates, delivery accuracy, resolution time, would-buy-again, issue
+  frequency by category). Objective procurement data, **not** a generic star rating.
 
 ## Product Structure - two experiences, one engine
 

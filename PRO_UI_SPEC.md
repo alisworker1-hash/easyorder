@@ -110,13 +110,29 @@ Runs after a need/list exists, before pricing. Answers "who should we even consi
 | Provenance badge (researched / demo / verified local) | `_provenance` |
 | Filter by category/type/query; multi-select as RFQ targets | `filterSuppliers()`, `suppliersForMaterials()` |
 
-## 6. Orders
+## 6. Orders (and Orders → Receiving, future)
 
 | Element | Engine source |
 |---|---|
 | Order list: supplier, line items, total, status (planned/placed/received) | `Order` + `ORDER_STATUS` |
 | "Order this basket" from any recommendation card → creates planned Order | `createOrder()` from pick rows |
-| Totals | `displayTotal(order.total, shippingKnown)` |
+| Totals | `displayLanded(order.total, order.shipping)` |
+| **Schedule-critical flag** on an order/line (Workspace) *(future)* | `Order.criticality` seam |
+
+### 6b. Receiving *(future - Orders → Receiving sub-tab)*
+When the post-purchase engines land (ROADMAP Phase 3.5), each placed Order gains a
+**Receiving** view:
+
+| Element | Engine source |
+|---|---|
+| Receiving checklist generated from order lines | Receiving Engine, `ReceivingRecord` |
+| Per-line outcome control: complete / missing / wrong / damaged / partial / substituted | `RECEIVING_OUTCOME` |
+| Problem detected → "Draft supplier email" (missing/wrong/damaged/late/expedite/refund/...) | Issue Resolution Engine (user approves before send) |
+| Critical shortage → business-impact banner + "Find alternates" + urgent draft | Critical Material Monitoring → Discovery |
+| Supplier reliability panel (accuracy, issue rates) once history exists | Supplier `memory` reliability metrics |
+
+Nav: today's **Orders** item expands to **Orders → Receiving** when the feature ships; no new
+top-level nav entry required. Every drafted message is user-approved before sending.
 
 ## 7. Results view = STRATEGY CARDS FIRST (the default)
 

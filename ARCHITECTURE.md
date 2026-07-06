@@ -114,6 +114,35 @@ script. Modules require http (already satisfied by the dev server / Pages), neve
 Both products read/write these same shapes, so a Home shopping list and a Pro project list
 are the same primitive at different altitudes.
 
+## Future: post-purchase layers (seams now, engines later)
+
+The lifecycle continues past Buy: **Receive -> Resolve -> Remember -> Improve.** These are
+documented as future layers and data-model seams; only a minimal placeholder is added when
+clearly needed. All are additive `/core` modules, DOM-free like the rest.
+
+- **Receiving Engine** (`core/receiving.js`, future) - builds a receiving checklist from an
+  `Order`'s lines and records outcomes. Planned model **ReceivingRecord**:
+  `{ orderId, receivedAt, lines: [{ orderLineId, outcome, qtyReceived, note }] }` where
+  `outcome` ∈ `received_complete | missing | wrong_item | damaged | partial | substituted`
+  (a `RECEIVING_OUTCOME` enum alongside the other status vocabularies).
+- **Issue Resolution Engine** (`core/resolution.js`, future) - given a problem outcome,
+  drafts supplier communication (reuses the `core/rfq.js` email pattern). Planned model
+  **IssueCase**: `{ orderId, kind, severity, requestedRemedy, draft, status, timeline[] }`,
+  `kind` ∈ `missing | wrong | damaged | late | expedite | refund_credit | freight_reimb |
+  accommodation`. **Boundary: EasyOrder drafts and organizes; the user approves every message
+  before sending.** It advocates, it does not negotiate or make claims autonomously.
+- **Critical Material Monitoring** (Workspace) - a `criticality` seam on `Order` / order line:
+  `{ level, requiredOnSiteDate, installDate, crewScheduled, laborCostPerDay, delayRisk,
+  alternateNeededIfShort }`. A schedule-critical shortage escalates: show business impact,
+  trigger the Discovery Engine for alternates, draft urgent comms, document, track resolution.
+- **Supplier Reliability Memory** - receiving/resolution outcomes flow into the existing
+  supplier `memory` seam as **objective metrics** (order accuracy, missing/damaged/wrong
+  rates, delivery accuracy, resolution time, would-buy-again, issue frequency by category),
+  which then bias future discovery and recommendation. Objective data, not a star rating.
+
+These close the loop: outcomes at Receive/Resolve become memory that improves Discovery and
+Recommendation on the next need.
+
 ## The Command Bar as orchestrator
 
 A thin **intent router**, not a chat that holds the user:

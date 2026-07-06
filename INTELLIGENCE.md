@@ -142,6 +142,25 @@ This requires new inputs (quantity-break price tables, subscription terms) and a
 the cadence is captured on the list and the Bulk/Subscription cards show a "coming soon"
 state - never a fabricated number.
 
+## Supplier reliability from receiving outcomes (future)
+
+Today's supplier-level confidence is *category fit* (will they carry this?). A second,
+earned signal comes from **what actually happened** after purchase. The Receiving Engine
+(see ARCHITECTURE.md) records per-order outcomes; those roll up into objective supplier
+reliability metrics stored in the supplier `memory` seam:
+
+- order accuracy, missing-item rate, wrong-item rate, damaged-item rate
+- average delivery accuracy, average resolution time
+- would-buy-again, issue frequency by category
+
+**Not a generic star rating** - objective procurement-outcome data collected as a byproduct
+of the receiving workflow. Over time these feed two places: discovery ranking (a local
+supplier that consistently delivers accurately should rank up) and recommendation warnings
+(flag a supplier with a high damage rate in this category). A future `reliabilityScore()`
+packages these, always explainable from the underlying counts. Until the Receiving Engine
+exists, the metrics are absent and nothing fabricates them - reliability is simply "no
+history yet", exactly like the memory panel's empty state.
+
 ## How the UI should surface uncertainty
 
 1. **Confidence badge on every option** (color-banded: 100/95/80/60/40/0) with a hover/tap
