@@ -10,4 +10,5 @@ export * from "./rfq.js";
 export * from "./recommend.js";
 export * from "./intelligence.js";
 export * from "./discovery.js";
+export * from "./intent.js";
 export * from "./shipping.js";

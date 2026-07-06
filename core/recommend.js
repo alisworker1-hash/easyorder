@@ -11,7 +11,7 @@
      bestOverallValue     explainable weighted blend of the above
 */
 
-import { toCents, fromCents, round2 } from "./money.js";
+import { toCents, fromCents, round2, money, displayLanded } from "./money.js";
 import { MATCH_STATUS, CONFIRMED_STATUSES, deriveLineStatus } from "./models.js";
 import { evaluateOption, procurementEffort, shippingKnown, ACTION } from "./intelligence.js";
 import { estimateShipping, landedTotal, meetsMinimum } from "./shipping.js";
@@ -241,6 +241,50 @@ function rankPickupOptions(materials, quotes, nameOf) {
   return options;
 }
 
+/* explainPick: why a chosen supplier won, and why each rival lost. Pure over the
+   supplierSummaries the engine already produced - powers the "See Breakdown" view.
+   `winnerId` is a supplierId (the single-supplier strategy picks resolve to one). */
+export function explainPick(winnerId, supplierSummaries) {
+  const winner = (supplierSummaries || []).find((s) => s.supplierId === winnerId);
+  if (!winner) return null;
+
+  const winReasons = [];
+  winReasons.push(`covers ${winner.itemsConfirmed}/${winner.itemsTotal} confirmed`);
+  if (winner.allExactConfirmed) winReasons.push("all lines exact");
+  if (winner.fulfillment === "pickup") winReasons.push("in-store pickup");
+  else if (winner.shipping && winner.shipping.confidence === "confirmed") winReasons.push("shipping confirmed");
+  winReasons.push(`landed ${displayLanded(winner.confirmedPartsTotal, winner.shipping)}`);
+
+  const loseReason = (s) => {
+    if (!s.meetsMinimum)
+      return `below the $${s.minOrderValue} order minimum (short $${s.minOrderShortfall.toFixed(2)})`;
+    if (s.itemsConfirmed < winner.itemsConfirmed)
+      return `covers only ${s.itemsConfirmed}/${s.itemsTotal} confirmed`;
+    if (s.fulfillment === "delivery" && !s.shippingKnown)
+      return `shipping cost unknown (parts ${money(s.confirmedPartsTotal)})`;
+    if (s.landedShippingKnown && winner.landedShippingKnown && s.landedTotal > winner.landedTotal)
+      return `${money(s.landedTotal - winner.landedTotal)} more landed`;
+    if (!s.allExactConfirmed && winner.allExactConfirmed)
+      return "includes a substitute or partial line";
+    if (s.effort > winner.effort) return "higher procurement effort";
+    return "edged out on overall balance";
+  };
+
+  const losers = (supplierSummaries || [])
+    .filter((s) => s.supplierId !== winnerId && s.itemsConfirmed > 0)
+    .map((s) => ({ supplierId: s.supplierId, supplierName: s.supplierName,
+      landedTotal: s.landedTotal, reason: loseReason(s) }));
+
+  return {
+    winner: {
+      supplierId: winner.supplierId, supplierName: winner.supplierName,
+      landedTotal: winner.landedTotal, shippingConfidence: winner.shipping ? winner.shipping.confidence : null,
+      reason: winReasons.join(", "),
+    },
+    losers,
+  };
+}
+
 /* Per-supplier recommended next action, derived from coverage / minimum / shipping state.
    Distinct from the per-line nextAction: this is "what do I do with THIS supplier". */
 function supplierAction(s) {
@@ -366,6 +410,7 @@ export function recommend(materials, quotes, opts = {}) {
          distinct from per-line price confidence). */
       supplierConfidence: sup.supplierConfidence ?? null,
       supplierCategory: sup.supplierCategory ?? null,
+      supplierType: sup.type ?? null,
     };
   }).sort((a, b) => b.itemsConfirmed - a.itemsConfirmed ||
     // rank full-coverage suppliers by LANDED total when both shipping figures are known,
@@ -380,6 +425,22 @@ export function recommend(materials, quotes, opts = {}) {
     a.effort - b.effort || a.confirmedPartsTotal - b.confirmedPartsTotal)[0] || null;
   const bestExactSpec = supplierSummaries.filter((s) => s.allExactConfirmed && s.meetsMinimum)
     .sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0] || null;
+
+  /* Best Price Today: cheapest COMPLETE order you can place now. Prefer suppliers whose
+     landed cost is known (pickup or confirmed shipping); fall back to parts when none is. */
+  const withLanded = fullCover.filter((s) => s.landedShippingKnown);
+  const bestPriceToday = (withLanded.length
+    ? withLanded.slice().sort((a, b) => a.landedTotal - b.landedTotal)[0]
+    : fullCover.slice().sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0]) || null;
+
+  /* Best Local Supplier: the strongest nearby business, even if it's still quote-by-phone
+     (it surfaces with a "call" action rather than being hidden). Local = supplier type
+     "local" or a discovery local-* category. */
+  const isLocal = (s) => s.supplierType === "local" || String(s.supplierCategory || "").startsWith("local");
+  const bestLocal = supplierSummaries.filter(isLocal).sort((a, b) =>
+    b.itemsConfirmed - a.itemsConfirmed ||
+    ((a.landedShippingKnown && b.landedShippingKnown) ? a.landedTotal - b.landedTotal : a.effort - b.effort) ||
+    ((a.confirmedPartsTotal || Infinity) - (b.confirmedPartsTotal || Infinity)))[0] || null;
 
   /* Aggregated next actions: the buyer's to-do list for shrinking uncertainty.
      Buy-ready actions are omitted here - they live on the picks themselves. */
@@ -430,6 +491,8 @@ export function recommend(materials, quotes, opts = {}) {
     bestLowestCost: { ...lowestPrice,
       reason: "cheapest confirmed line per material; may split across suppliers" },
     bestExactSpec,
+    bestPriceToday,
+    bestLocal,
     pickupOptions,
     /* uncertainty made visible */
     options,
