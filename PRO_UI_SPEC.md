@@ -118,45 +118,78 @@ Runs after a need/list exists, before pricing. Answers "who should we even consi
 | "Order this basket" from any recommendation card → creates planned Order | `createOrder()` from pick rows |
 | Totals | `displayTotal(order.total, shippingKnown)` |
 
-## 7. Recommendation Cards (project detail, top of Quotes tab)
+## 7. Results view = STRATEGY CARDS FIRST (the default)
 
-Five cards side by side (wrap on mobile). Every card: total via `displayTotal`,
-one-line reason, inline warnings, CTA from the pick's nature.
+**The standard results view leads with strategy cards, not the vendor table.** The fastener
+test proved buyers think in strategies ("cheapest that ships", "have it today", "exact
+spec"), not in a 9-vendor grid. The giant comparison table is the *drill-down* (section 8),
+reached from each card's **See Breakdown** action - never the first thing shown.
 
-| Card | Engine source | Total display example |
-|---|---|---|
-| ⭐ Best Confirmed | `bestConfirmed` (basis, total, ranked) + `axes[basis].rows` | `$15.76 + Shipping` |
-| 🏬 Best Pickup | `bestPickupCandidate` (supplierName, confirmedPartsTotal, sameDayCapable, verificationFlags) | `$32.92` + "Same-day" chip |
-| 🛋️ Best Convenience | `bestConvenience` (supplierName, effort, convenience, confirmedPartsTotal, effortFactors) | `$49.98` + "Convenience 89/100" |
-| 🎯 Best Exact-Spec | `bestExactSpec` (supplierName, confirmedPartsTotal, shippingKnown) | `$16.32 + Shipping` |
-| 💰 Lowest Cost | `bestLowestCost` (total, supplierCount, rows, reason) | `$11.66 + Shipping` + split warning |
+Each card: title + winning supplier, landed total via `displayLanded()`, a one-line "why it
+won", inline warnings, the engine's `recommendedAction` as the CTA, and a **See Breakdown**
+link.
+
+### Default strategies
+
+| Strategy card | What it answers | Engine source | Status |
+|---|---|---|---|
+| 🧭 **Best Overall** | best balance of price/lead/suppliers | `bestConfirmed` (bestOverallValue) | live |
+| 💰 **Best Price Today** | cheapest buyable landed cost, in stock now | cheapest `supplierSummaries` where `meetsMinimum` && landed known, else lowest parts | live (add a landed-sort helper) |
+| ⏱️ **Need It Today** | fastest to hand (pickup / same-day) | `bestPickupCandidate` (`sameDayCapable`) | live |
+| 🎯 **Best Exact Spec** | every line an exact match, cheapest | `bestExactSpec` | live |
+| 📦 **Best Bulk Value** | lowest unit cost at higher volume / pack breaks | quantity-break pricing | **future engine capability** |
+| 🔁 **Best Subscription / Recurring** | best price for a repeating buy | subscription/recurring pricing | **future engine capability** |
+| 📍 **Best Local Supplier** | best nearby business (service/proximity) | best `supplierSummaries` where supplier `type === "local"` (or discovery `local-*` category), by effort/landed | live (add a local-pick helper) |
+
+Cards render only when they have a qualifying result; a strategy with no data shows a muted
+"needs more info" state with its next action (e.g. Best Local -> "Call Ababa Bolt for a
+quote"), never a blank or a fake number.
 
 Card anatomy:
 ```
-┌─────────────────────────────┐
-│ 🎯 BEST EXACT-SPEC          │
-│ Bolt Depot                  │
-│ $16.32 + Shipping           │   ← displayTotal(16.32, false)
-│ All 4 lines exact-confirmed │   ← reason
-│ ⚠ shipping cost unknown     │   ← warnings filtered to this pick
-│ [Confirm Shipping]          │   ← CTA = the pick's dominant nextAction
-└─────────────────────────────┘
+┌───────────────────────────────────┐
+│ 🎯 BEST EXACT SPEC                │
+│ Bolt Depot            conf 100    │
+│ $28.42  (incl. ship)              │   ← displayLanded(16.32, {cost:12.10,confidence:"confirmed"})
+│ Why it won: only vendor with all  │
+│   4 lines exact + confirmed ship  │
+│ [ Order online ]   See Breakdown →│   ← CTA = recommendedAction.label
+└───────────────────────────────────┘
 ```
-Warnings routing: `recommend().warnings` matched to the card whose supplier/rows they
-reference; unmatched warnings show above the card row.
 
-## 8. Comparison Table (Quotes tab)
+### "Do you buy this frequently?" (unlocks bulk/subscription)
+
+A per-list toggle: **one-time** / **occasional** / **regular (every N weeks)**. It sets a
+purchase-cadence on the list and, when "regular", surfaces the **Best Bulk Value** and
+**Best Subscription / Recurring** cards and can bias Best Overall toward exact-quantity vs
+buy-ahead. Feeds a future `frequency`-aware recommendation input (see INTELLIGENCE.md and
+ROADMAP.md). Until those engine capabilities land, the toggle is captured on the list and
+the two cards show a "coming soon" state.
+
+## 8. See Breakdown = full comparison (drill-down from a strategy card)
+
+Opened by any card's **See Breakdown**. This is where the vendor table lives - it is not the
+default view. It must explain the decision, not just list numbers:
+
+- **Why the winner won** - the card's supplier, its landed total, and the deciding factors
+  (from `recommendedAction`, `warnings`, and the winning `supplierSummaries` row).
+- **Why the others lost** - per rival, the specific reason: higher landed cost, unknown
+  shipping, a substitute/partial line, a minimum-order gate, longer lead. Sourced from each
+  `supplierSummaries` row (`landedTotal`, `shipping.confidence`, `meetsMinimum`/
+  `minOrderShortfall`, `allExactConfirmed`) and `excluded`.
+- The full matrix below.
 
 Rows = materials; columns = suppliers ranked by `supplierSummaries` order.
-Default: top 6 supplier columns + "show all" (64 options on the fastener case; lazy-render).
+Default: top 6 supplier columns + "show all" (lazy-render).
 
 | Element | Engine source |
 |---|---|
-| Column header: supplier, coverage "4/4", `displayTotal(confirmedPartsTotal, shippingKnown)`, effort/convenience mini-bar, ALL-EXACT star | `supplierSummaries` |
+| Column header: supplier, coverage "4/4", **landed total** via `displayLanded()`, **shipping confidence chip** (confirmed/est./unknown), **min-order badge** if not met, effort/convenience mini-bar, ALL-EXACT star, `recommendedAction` | `supplierSummaries` (`landedTotal`, `shipping`, `meetsMinimum`, `minOrderShortfall`) |
 | Cell: unitPrice + lineTotal, status color, **confidence badge**, missing-field chips, next-action icon | `options` (find by supplierId+materialId) |
 | Cell tooltip: confidence breakdown + matchNote | `option.confidenceDetail`, `option.matchNote` |
 | Excluded cells: grayed with reason on hover | `excluded` |
-| Footer row: per-supplier totals | `supplierSummaries.confirmedPartsTotal` via `displayTotal` |
+| Not-buyable column (min-order gate): banner "min $100, add $71.70" | `supplierSummaries[].meetsMinimum / minOrderShortfall` |
+| Footer row: per-supplier landed totals | `supplierSummaries.landedTotal` via `displayLanded` |
 
 ## 9. Next-Action Panel (right rail of project detail; also Dashboard preview)
 

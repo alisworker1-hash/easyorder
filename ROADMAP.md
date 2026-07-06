@@ -34,6 +34,23 @@ Layer the LLM in where it earns its cost, through the existing proxy.
 - **RFQ drafting**: polish per-supplier RFQ copy.
 - Still no AI-generated BOM (deferred); usage stays bounded by the proxy budget cap.
 
+## Phase 2 (deterministic engine additions, no AI) - strategy & frequency
+
+Surfaced by the yellow-zinc test case. Pure engine work, no AI spend:
+
+- **Strategy cards as the results view** (see PRO_UI_SPEC.md): Best Overall, Best Price
+  Today, Need It Today, Best Exact Spec, Best Local Supplier map to existing picks; add
+  small landed-sort and local-pick helpers.
+- **`explainPick()`**: package "why the winner won / why the others lost" from existing
+  `supplierSummaries` fields (landed cost, shipping confidence, minimum-order gate, exact
+  vs substitute, lead time).
+- **Frequency-aware recommendation**: a `frequency` input (one-time / occasional / regular)
+  on `recommend()` plus new supplier data:
+  - **Best Bulk Value** - quantity-break / pack-price tables -> lowest unit cost at volume.
+  - **Best Subscription / Recurring** - recurring-order pricing/terms.
+  - exact-quantity remains the default. These need new inputs (quantity breaks, subscription
+    terms), so they are future capabilities; the cadence toggle ships first, the cards follow.
+
 ## Phase 3 - Real integrations + Pro subscription
 - **Live discovery providers** behind the `DiscoveryProvider` interface: Places/Maps,
   supplier directories, industry databases, retailer APIs, merchant-submitted profiles,

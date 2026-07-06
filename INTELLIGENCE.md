@@ -99,6 +99,48 @@ display them; no logic depends on them yet.
 - `warnings` - substitutes inside headline picks, unknown shipping, split-buy trip costs, uncovered materials
 - `candidates` / `excluded` - labeled non-math options and rejections, each with reasons
 - `mathNote` - one sentence explaining what entered the math
+- per `supplierSummaries` row: `landedTotal`, `shipping` (with confidence),
+  `meetsMinimum` / `minOrderValue` / `minOrderShortfall`, `recommendedAction`
+
+## Strategy cards (the results view)
+
+Buyers think in strategies, not vendor grids. The results view leads with named strategy
+cards (see PRO_UI_SPEC.md), each pointing at an engine pick, with a **See Breakdown** that
+opens the full comparison. Current mapping:
+
+| Strategy | Engine pick | Status |
+|---|---|---|
+| Best Overall | `bestConfirmed` | live |
+| Best Price Today | cheapest buyable landed (`supplierSummaries` where `meetsMinimum`) | live (needs a landed-sort helper) |
+| Need It Today | `bestPickupCandidate` (`sameDayCapable`) | live |
+| Best Exact Spec | `bestExactSpec` | live |
+| Best Bulk Value | quantity-break pricing | future |
+| Best Subscription / Recurring | recurring-purchase pricing | future |
+| Best Local Supplier | best `supplierSummaries` with local supplier type/category | live (needs a local-pick helper) |
+
+### Why won / why lost
+
+Every strategy must explain itself. The engine already carries the evidence: a winner's
+`recommendedAction` + winning-row fields, and each rival's losing reason derivable from its
+`supplierSummaries` row - higher `landedTotal`, `shipping.confidence === "unknown"`, a
+non-`allExactConfirmed` line, `!meetsMinimum` (with `minOrderShortfall`), or longer lead.
+The breakdown renders these as "why the winner won / why the others lost" rather than a bare
+table. A future `explainPick()` helper can package this per strategy.
+
+### Frequency-aware purchasing (future engine capability)
+
+A list carries a purchase cadence ("Do you buy this frequently?": one-time / occasional /
+regular). Cadence unlocks recommendation modes the engine does not compute yet:
+
+- **exact-quantity** (default): buy just what's needed now.
+- **bulk value**: compare unit cost at pack/quantity breaks; a 25-pack that costs less per
+  piece can win for a regular buyer even with upfront overage.
+- **subscription / recurring**: prefer suppliers/terms priced for a repeating order.
+
+This requires new inputs (quantity-break price tables, subscription terms) and a
+`frequency` parameter on `recommend()`. Documented as future work in ROADMAP.md; until then
+the cadence is captured on the list and the Bulk/Subscription cards show a "coming soon"
+state - never a fabricated number.
 
 ## How the UI should surface uncertainty
 
