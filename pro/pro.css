@@ -27,6 +27,13 @@ button { font-family: inherit; cursor: pointer; }
 .nav-item { font-size: .9rem; font-weight: 600; color: var(--muted); }
 .nav-item.active { color: var(--ink); border-bottom: 2px solid var(--green); padding-bottom: 4px; }
 .nav-item.muted { opacity: .5; cursor: default; }
+.nav-item.homelink { color: var(--green); text-decoration: none; border: 1px solid var(--line); padding: 5px 10px; border-radius: 8px; }
+.nav-item.homelink:hover { background: var(--good-bg); border-color: var(--green); }
+
+/* demo-data banner */
+.demobar { background: #fff7e6; border-bottom: 1px solid #f0e2c4; color: #7a5a12; font-size: .84rem; }
+.demobar .wrap { padding: 8px 20px; }
+.demobar b { color: #6a4d0a; }
 
 /* hero + command bar */
 .hero { padding: 46px 0 22px; }
