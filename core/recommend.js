@@ -305,6 +305,22 @@ export function recommend(materials, quotes, opts = {}) {
   const { offers, candidates: candidateLines, excluded } = classifyLines(materials, quotes);
   const feeMap = supplierFeeMap(quotes);
 
+  /* Enforce vendor order minimums on the offer pool. A supplier whose ENTIRE confirmed
+     basket for this order is below its minimum-order value cannot fulfill a viable order,
+     so it must not appear in any assignment axis (lowestPrice split, fewest-suppliers, etc).
+     It still shows in supplierSummaries flagged not-buyable. Prevents recommending or
+     splitting to a vendor you literally cannot order from. */
+  const supTotalCents = new Map();
+  for (const list of offers.values())
+    for (const o of list) supTotalCents.set(o.supplierId, (supTotalCents.get(o.supplierId) || 0) + o.lineCents);
+  const belowMin = new Set();
+  for (const [sid, cents] of supTotalCents) {
+    const sp = (suppliers.find((s) => s.id === sid) || {}).shippingPolicy;
+    if (sp && sp.minOrderValue != null && fromCents(cents) < sp.minOrderValue) belowMin.add(sid);
+  }
+  if (belowMin.size)
+    for (const [mid, list] of offers) offers.set(mid, list.filter((o) => !belowMin.has(o.supplierId)));
+
   const covered   = [...offers.keys()].filter((mid) => offers.get(mid).length);
   const uncovered = [...offers.keys()].filter((mid) => !offers.get(mid).length);
 

@@ -4,14 +4,16 @@
 
 import {
   resolveIntent, discoverSuppliers, recommend, explainPick,
-  displayLanded, money,
+  displayLanded, money, createMaterialLine, proStore,
 } from "../core/index.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const clone = (o) => JSON.parse(JSON.stringify(o));
 
-const STATE = { dir: [], scenarios: {}, rec: null, uni: null, cards: [] };
+const LIST_KEY = "hwMaterials"; // eo.pro.hwMaterials
+const STATE = { dir: [], scenarios: {}, rec: null, uni: null, cards: [], materials: null };
 
 /* ---------- data ---------- */
 async function loadData() {
@@ -40,13 +42,64 @@ async function run(text) {
 
   const sc = STATE.scenarios.fastener;
   const need = { query: text, productCategory: "fasteners" };
-  const uni = await discoverSuppliers(need, { directory: STATE.dir });
-  const rec = recommend(sc.materials, sc.sampleQuotes, { suppliers: uni.candidates });
-  STATE.rec = rec; STATE.uni = uni;
-  STATE.cards = buildCards(rec);
+  // discovery is category-based (independent of the exact list), so compute it once
+  STATE.uni = await discoverSuppliers(need, { directory: STATE.dir });
+  loadMaterials(sc);
+  renderRoute(intent, STATE.uni);
+  $("#listSection").hidden = false;
+  renderList();
+  recomputeAndRenderCards();
+}
 
-  renderRoute(intent, uni);
+/* ---------- material list (editable, persisted, live re-run) ---------- */
+function loadMaterials(sc) {
+  const saved = proStore.get(LIST_KEY, null);
+  STATE.materials = Array.isArray(saved) && saved.length ? saved : clone(sc.materials);
+}
+function saveMaterials() { proStore.set(LIST_KEY, STATE.materials); }
+
+function matRow(m) {
+  const sel = (v) => (m.fulfillment === v ? " selected" : "");
+  return `<tr data-id="${esc(m.id)}">
+    <td><input data-mat="item" value="${esc(m.item)}" aria-label="Item" /></td>
+    <td><input data-mat="qty" type="number" min="0" class="w-qty" value="${esc(m.qty)}" aria-label="Quantity" /></td>
+    <td><input data-mat="unit" class="w-unit" value="${esc(m.unit)}" aria-label="Unit" /></td>
+    <td><input data-mat="size" value="${esc(m.size)}" aria-label="Size" /></td>
+    <td><input data-mat="spec" value="${esc(m.spec)}" aria-label="Spec" /></td>
+    <td><input data-mat="neededBy" type="date" value="${esc(m.neededBy || "")}" aria-label="Needed by" /></td>
+    <td><select data-mat="fulfillment" aria-label="Fulfillment"><option value="delivery"${sel("delivery")}>Delivery</option><option value="pickup"${sel("pickup")}>Pickup</option></select></td>
+    <td><input data-mat="notes" value="${esc(m.notes)}" aria-label="Notes" /></td>
+    <td><button class="rowdel" data-del="${esc(m.id)}" title="Remove item" aria-label="Remove ${esc(m.item)}">✕</button></td>
+  </tr>`;
+}
+function renderList() {
+  $("#mattbl").innerHTML =
+    `<thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Size / dimensions</th><th>Spec / finish / grade</th><th>Needed by</th><th>Fulfillment</th><th>Notes</th><th></th></tr></thead>
+     <tbody>${STATE.materials.map(matRow).join("")}</tbody>`;
+}
+
+let _t = null;
+function scheduleRecompute(immediate) {
+  clearTimeout(_t);
+  if (immediate) return recomputeAndRenderCards();
+  _t = setTimeout(recomputeAndRenderCards, 350);
+}
+function recomputeAndRenderCards() {
+  const sc = STATE.scenarios.fastener;
+  STATE.rec = recommend(STATE.materials, sc.sampleQuotes, { suppliers: STATE.uni.candidates });
+  STATE.cards = buildCards(STATE.rec);
   renderCards(STATE.cards);
+}
+function onFieldEdit(el, immediate) {
+  const id = el.closest("tr").dataset.id;
+  const m = STATE.materials.find((x) => x.id === id);
+  if (!m) return;
+  const field = el.dataset.mat;
+  let v = el.value;
+  if (field === "qty") v = Math.max(0, parseInt(v, 10) || 0);
+  m[field] = field === "neededBy" ? (v || null) : v;
+  saveMaterials();
+  scheduleRecompute(immediate);
 }
 
 /* ---------- route line (shows intent + discovery, discovery-first story) ---------- */
@@ -94,6 +147,7 @@ function futureCard(title, icon, note) {
 
 function buildCards(rec) {
   const cards = [];
+  if (!rec.coverage.covered.length) return cards; // nothing sourced yet
   const basis = rec.bestConfirmed.basis;
   const axis = rec.axes[basis];
   if (axis.suppliers.length === 1)
@@ -159,8 +213,25 @@ function cardHTML(c, i) {
     </div>`;
 }
 
+function coverageBanner() {
+  const cov = STATE.rec.coverage;
+  if (!cov.uncovered.length) return "";
+  const names = cov.uncovered.map((id) => {
+    const m = STATE.materials.find((x) => x.id === id);
+    return m ? (m.item || "(unnamed item)") : id;
+  }).join(", ");
+  return `<div class="cov-banner">🧭 ${cov.uncovered.length} item(s) have no supplier in the current data:
+    <b>${esc(names)}</b>. In the full app this becomes an RFQ.
+    <span class="cov-sub">The strategy cards below cover the sourced items.</span></div>`;
+}
 function renderCards(cards) {
-  $("#results").innerHTML = cards.map(cardHTML).join("");
+  const banner = coverageBanner();
+  if (!cards.length) {
+    $("#results").innerHTML = banner + `<div class="empty">No sourced items yet. Add an item that a
+      demo supplier carries, or press <b>Reset to sample</b> to restore the fastener list.</div>`;
+    return;
+  }
+  $("#results").innerHTML = banner + cards.map(cardHTML).join("");
 }
 
 /* ---------- See Breakdown ---------- */
@@ -243,9 +314,35 @@ function closeBreakdown() {
 document.addEventListener("submit", (e) => {
   if (e.target.id === "cbar") { e.preventDefault(); const v = $("#cbarInput").value.trim(); if (v) run(v); }
 });
+/* live list editing: text/number inputs debounce, selects/dates apply immediately */
+document.addEventListener("input", (e) => {
+  const el = e.target.closest("[data-mat]");
+  if (el) onFieldEdit(el, false);
+});
+document.addEventListener("change", (e) => {
+  const el = e.target.closest("[data-mat]");
+  if (el && (el.tagName === "SELECT" || el.type === "date")) onFieldEdit(el, true);
+});
+
 document.addEventListener("click", (e) => {
   const chip = e.target.closest("[data-q]");
   if (chip) { $("#cbarInput").value = chip.dataset.q; run(chip.dataset.q); return; }
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    STATE.materials = STATE.materials.filter((m) => m.id !== del.dataset.del);
+    saveMaterials(); renderList(); recomputeAndRenderCards(); return;
+  }
+  if (e.target.id === "addRow") {
+    STATE.materials.push(createMaterialLine({ item: "", qty: 1, unit: "each", category: "fasteners", fulfillment: "delivery" }));
+    saveMaterials(); renderList(); recomputeAndRenderCards();
+    const rows = $("#mattbl").querySelectorAll("tbody tr");
+    const last = rows[rows.length - 1]; if (last) last.querySelector("input").focus();
+    return;
+  }
+  if (e.target.id === "resetList") {
+    STATE.materials = clone(STATE.scenarios.fastener.materials);
+    saveMaterials(); renderList(); recomputeAndRenderCards(); return;
+  }
   const bk = e.target.closest("[data-bk]");
   if (bk) { openBreakdown(STATE.cards[+bk.dataset.bk]); return; }
   const cta = e.target.closest("[data-cta]");

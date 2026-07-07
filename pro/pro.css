@@ -50,6 +50,29 @@ button { font-family: inherit; cursor: pointer; }
 .routeline .rl-row + .rl-row { margin-top: 4px; }
 .rl-badge { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--green); background: var(--good-bg); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
 
+/* material list panel */
+.listpanel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+.listhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.lh-title { font-size: 1.05rem; margin: 0; }
+.lh-actions { display: flex; gap: 8px; }
+.btn-sm { background: var(--green); color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; font-weight: 650; font-size: .85rem; }
+.btn-sm:hover { background: var(--green-d); }
+.btn-sm.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.btn-sm.ghost:hover { color: var(--ink); border-color: var(--muted); }
+.mattbl { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 860px; }
+.mattbl th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 4px 6px; font-weight: 700; }
+.mattbl td { padding: 3px 6px; }
+.mattbl input, .mattbl select { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 7px 8px; font: inherit; font-size: .86rem; color: var(--ink); background: #fff; }
+.mattbl input:focus, .mattbl select:focus { outline: 2px solid var(--green); outline-offset: -1px; border-color: var(--green); }
+.mattbl input.w-qty { width: 62px; } .mattbl input.w-unit { width: 84px; }
+.rowdel { background: none; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); width: 30px; height: 32px; font-size: .9rem; }
+.rowdel:hover { color: var(--bad); border-color: var(--bad); }
+.list-hint { color: var(--muted); font-size: .82rem; margin: 10px 2px 0; }
+
+/* coverage banner */
+.cov-banner { grid-column: 1 / -1; background: var(--info-bg); border: 1px solid #cfe0f3; color: var(--ink); border-radius: 12px; padding: 12px 16px; font-size: .92rem; }
+.cov-banner .cov-sub { color: var(--muted); display: block; margin-top: 2px; font-size: .85rem; }
+
 /* strategy cards */
 .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 190px; }
