@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyOrder Pro - procurement workspace</title>
+  <meta name="description" content="Tell EasyOrder what you need. It discovers suppliers, compares landed cost, and recommends the smartest way to procure it." />
+  <meta name="theme-color" content="#0f8f64" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%230f8f64'/><path fill='%23fff' d='M6 12l3.5 3.5L18 7l-1.5-1.5L9.5 12.5 7.5 10.5z'/></svg>" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="pro.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">◆</span>
+        Easy<span>Order</span> <span class="brand-tag">Pro</span>
+      </a>
+      <nav class="topnav" aria-label="Workspace">
+        <span class="nav-item active">Discover</span>
+        <span class="nav-item muted" title="Coming soon">Projects</span>
+        <span class="nav-item muted" title="Coming soon">RFQs</span>
+        <span class="nav-item muted" title="Coming soon">Suppliers</span>
+        <span class="nav-item muted" title="Coming soon">Orders</span>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1 class="hero-title">What do you need today?</h1>
+        <p class="hero-sub">Describe the need in plain words. EasyOrder finds the suppliers, compares landed cost, and recommends the smartest way to buy. You don't have to know where to look.</p>
+        <form class="cbar" id="cbar" autocomplete="off">
+          <span class="cbar-ico" aria-hidden="true">🔎</span>
+          <input id="cbarInput" class="cbar-input" type="text"
+                 placeholder="e.g. 1/2-13 yellow zinc hardware" aria-label="What do you need?" />
+          <button class="cbar-go" type="submit">Find it</button>
+        </form>
+        <div class="chips" id="chips">
+          <button class="chip" data-q="1/2-13 yellow zinc hardware">1/2-13 yellow zinc hardware</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap results-wrap">
+      <div id="routeline" class="routeline" hidden></div>
+      <div id="results" class="results"></div>
+    </section>
+  </main>
+
+  <!-- See Breakdown drawer -->
+  <div class="modal-backdrop" id="bkBackdrop" hidden></div>
+  <aside class="breakdown" id="breakdown" role="dialog" aria-modal="true" aria-labelledby="bkTitle" hidden>
+    <div class="bk-head">
+      <h2 id="bkTitle">Breakdown</h2>
+      <button class="icon-btn" id="bkClose" aria-label="Close breakdown">✕</button>
+    </div>
+    <div class="bk-body" id="bkBody"></div>
+  </aside>
+
+  <footer class="foot"><div class="wrap">EasyOrder Pro · demo slice · recommendations from a deterministic engine over researched data · no checkout, no account.</div></footer>
+
+  <script type="module" src="pro.js?v=1"></script>
+</body>
+</html>
