@@ -277,17 +277,23 @@
       "type": "big-box",
       "name": "Walmart",
       "categories": [
+        "dairy",
         "fasteners",
+        "grocery",
         "hardware",
+        "meat",
+        "pantry",
+        "produce",
         "tools"
       ],
       "email": "",
       "phone": "",
       "location": "Marketplace/online for fasteners",
       "deliveryAvailable": true,
-      "leadTimeNote": "fastener listings are marketplace sellers, ship-only",
+      "leadTimeNote": "supercenter; groceries + general merchandise; pickup available",
       "logo": "🟦",
-      "_provenance": "real supplier, web research 2026-07-03; weak fastener coverage"
+      "_provenance": "real supplier, web research 2026-07-03; weak fastener coverage",
+      "distanceMiles": 3
     },
     {
       "id": "grainger",
@@ -466,6 +472,186 @@
       "logo": "🔩",
       "_provenance": "verified local supplier, web research 2026-07-03; no online pricing",
       "distanceMiles": 30
+    },
+    {
+      "id": "target",
+      "type": "big-box",
+      "name": "Target",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 2,
+      "deliveryAvailable": true,
+      "leadTimeNote": "grocery + general merchandise; Drive Up pickup",
+      "logo": "🎯",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "ralphs",
+      "type": "specialty",
+      "name": "Ralphs (Kroger)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔵",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "vons",
+      "type": "specialty",
+      "name": "Vons (Albertsons)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔴",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "albertsons",
+      "type": "specialty",
+      "name": "Albertsons",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 4,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔷",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "sprouts",
+      "type": "specialty",
+      "name": "Sprouts Farmers Market",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "natural/organic focus; strong produce",
+      "logo": "🥬",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "trader-joes",
+      "type": "specialty",
+      "name": "Trader Joe's",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 4,
+      "deliveryAvailable": true,
+      "leadTimeNote": "private-label grocery; no online pricing published",
+      "logo": "🛍️",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "costco",
+      "type": "specialty",
+      "name": "Costco Wholesale",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 6,
+      "deliveryAvailable": true,
+      "leadTimeNote": "warehouse club; bulk packs; membership; in-warehouse pricing not public",
+      "logo": "🏬",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "whole-foods",
+      "type": "specialty",
+      "name": "Whole Foods Market (Amazon)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 8,
+      "deliveryAvailable": true,
+      "leadTimeNote": "natural/organic; some pricing via Amazon",
+      "logo": "🌿",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "frazier-farms",
+      "type": "local",
+      "name": "Frazier Farms Market (Escondido)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 2,
+      "deliveryAvailable": true,
+      "leadTimeNote": "local natural-foods grocer; strong organic produce",
+      "logo": "🌾",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
     }
   ]
 }

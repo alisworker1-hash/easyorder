@@ -387,7 +387,7 @@ export function recommend(materials, quotes, opts = {}) {
 
   /* Per-supplier summary: coverage, confirmed parts total, effort/convenience. */
   const supplierSummaries = (quotes || []).map((q) => {
-    let confirmed = 0, candidate = 0, cents = 0, exactOnly = true;
+    let confirmed = 0, candidate = 0, cents = 0, exactOnly = true, exactCount = 0, subCount = 0;
     for (const li of q.lineItems || []) {
       const m = materialOf(li.materialId);
       if (!m) continue;
@@ -395,7 +395,7 @@ export function recommend(materials, quotes, opts = {}) {
       if (st === MATCH_STATUS.NOT_RECOMMENDED) { exactOnly = false; continue; }
       if (CONFIRMED_STATUSES.has(st) && li.unitPrice != null && li.available !== false) {
         confirmed++; cents += toCents(li.unitPrice) * qtyOf(li.materialId);
-        if (st !== MATCH_STATUS.EXACT_CONFIRMED) exactOnly = false;
+        if (st === MATCH_STATUS.EXACT_CONFIRMED) exactCount++; else { exactOnly = false; subCount++; }
       } else { candidate++; exactOnly = false; }
     }
     const sup = supplierOf(q.supplierId);
@@ -414,6 +414,8 @@ export function recommend(materials, quotes, opts = {}) {
       itemsConfirmed: confirmed, itemsCandidate: candidate, itemsTotal: materials.length,
       fullConfirmedCoverage: confirmed === materials.length,
       allExactConfirmed: exactOnly && confirmed === materials.length,
+      /* exact vs substitute counts drive the "preference met" (e.g. organic) strategy */
+      exactCount, substituteCount: subCount,
       confirmedPartsTotal: partsTotal,
       /* shipping is now a first-class, estimated field with its own confidence */
       shipping, shippingKnown: landed.shippingKnown,
@@ -448,6 +450,19 @@ export function recommend(materials, quotes, opts = {}) {
   const bestPriceToday = (withLanded.length
     ? withLanded.slice().sort((a, b) => a.landedTotal - b.landedTotal)[0]
     : fullCover.slice().sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0]) || null;
+
+  /* One-Store Best: cheapest SINGLE store that covers the whole basket in one trip - the
+     grocery "one trip vs cherry-pick" tradeoff against bestLowestCost (the multi-store split). */
+  const bestOneStore = (withLanded.length
+    ? withLanded.slice().sort((a, b) => a.landedTotal - b.landedTotal)[0]
+    : fullCover.slice().sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0]) || null;
+
+  /* Best Organic / preference-met: the full-coverage store that satisfies the most PREFERRED
+     (exact_confirmed) lines - e.g. organic/brand preference - then cheapest. Distinguishes an
+     exact/preferred match from a cheaper non-organic substitute. */
+  const bestOrganic = fullCover.slice().sort((a, b) =>
+    b.exactCount - a.exactCount ||
+    ((a.landedShippingKnown && b.landedShippingKnown) ? a.landedTotal - b.landedTotal : a.confirmedPartsTotal - b.confirmedPartsTotal))[0] || null;
 
   /* Best Local Supplier: the strongest nearby business, even if it's still quote-by-phone
      (it surfaces with a "call" action rather than being hidden). Local = supplier type
@@ -508,6 +523,8 @@ export function recommend(materials, quotes, opts = {}) {
       reason: "cheapest confirmed line per material; may split across suppliers" },
     bestExactSpec,
     bestPriceToday,
+    bestOneStore,
+    bestOrganic,
     bestLocal,
     pickupOptions,
     /* uncertainty made visible */

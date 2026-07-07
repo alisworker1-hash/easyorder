@@ -33,6 +33,11 @@ export const SUPPLIER_CATEGORY = {
   SCREEN_REPAIR: "screen-repair-service",
   WINDOW_COMPANY: "window-company",
   HANDYMAN: "handyman-service",
+  /* grocery domain */
+  SUPERCENTER: "supercenter",
+  GROCERY_STORE: "grocery-store",
+  NATURAL_GROCER: "natural-grocer",
+  WAREHOUSE_CLUB: "warehouse-club",
 };
 
 export function labelFor(cat) {
@@ -58,6 +63,8 @@ const SOLUTION_MAP = [
     categories: [C.HOME_IMPROVEMENT, C.BIG_BOX_RETAILER, C.WHOLESALE_DISTRIBUTOR, C.LUMBER_YARD] },
   { match: /(flooring|tile|laminate|hardwood floor)/i,
     categories: [C.SPECIALTY_MANUFACTURER, C.HOME_IMPROVEMENT, C.BIG_BOX_RETAILER] },
+  { match: /(grocery|groceries|milk|cereal|yogurt|produce|peach|apple|pear|watermelon|ground beef|jell-?o|gelatin|pudding|lactaid|greek|organic|snack|food)/i,
+    categories: [C.GROCERY_STORE, C.SUPERCENTER, C.NATURAL_GROCER, C.WAREHOUSE_CLUB, C.BIG_BOX_RETAILER] },
 ];
 const GENERIC_FALLBACK = [C.BIG_BOX_RETAILER, C.HARDWARE_STORE, C.HOME_IMPROVEMENT, C.WHOLESALE_DISTRIBUTOR];
 
@@ -88,7 +95,13 @@ export function classifySupplier(s) {
   if (/lumber/.test(n)) return C.LUMBER_YARD;
   if (/grainger/.test(n)) return C.INDUSTRIAL_DISTRIBUTOR;
   if (/fastenal|fastener|bolt|fmw/.test(n)) return s.type === "local" ? C.LOCAL_BOLT_HOUSE : C.FASTENER_DISTRIBUTOR;
-  if (/tractor supply|farm|ranch/.test(n)) return C.FARM_RANCH_SUPPLY;
+  /* grocery banners first (explicit names only, so "Fastener Mart" is never a grocery, and
+     "Sprouts Farmers Market" / "Frazier Farms" classify as grocery, not farm-ranch). */
+  if (/costco|sam'?s club|bj'?s wholesale/.test(n)) return C.WAREHOUSE_CLUB;
+  if (/sprouts|whole foods|trader joe|natural grocer|frazier/.test(n)) return C.NATURAL_GROCER;
+  if (/kroger|ralphs|albertsons|vons|safeway|food 4 less|stater|smart & final|grocery outlet/.test(n)) return C.GROCERY_STORE;
+  /* farm & ranch requires the specific phrase, not a bare "farm"/"ranch" */
+  if (/tractor supply|farm & ranch|ranch supply|feed store|farm supply/.test(n)) return C.FARM_RANCH_SUPPLY;
   if (/machine|fabricat/.test(n)) return C.MACHINE_SHOP;
   if (/glass/.test(n)) return C.GLASS_COMPANY;
   if (/screen/.test(n)) return C.SCREEN_REPAIR;
@@ -145,10 +158,15 @@ export function demoDiscoveryProvider(directory) {
             : r.carriesProduct ? "lists this product category" : "possible source; confirm category";
           return { ...s, discoverySource: "demo", why, ...r };
         })
-        // Relevance floor: a candidate must be the RIGHT KIND of business or actually carry
-        // the product. This is not "hiding options" (that rule is about missing FIELDS on a
-        // relevant supplier) - it's not proposing a flooring store for a bolt order.
-        .filter((c) => c.inSolution || c.carriesProduct);
+        // Relevance floor. When the need names a product category, a candidate must actually
+        // carry it (right KIND alone isn't enough - a big-box hardware store is "in solution"
+        // for groceries by class but doesn't stock food). With no category given, fall back to
+        // the looser right-kind-or-carries test. Never "hides options" (that rule is about
+        // missing FIELDS on a relevant supplier); it just keeps a hardware store out of a
+        // grocery run and a flooring store out of a bolt order.
+        .filter((c) => (typeof need === "object" && need.productCategory)
+          ? c.carriesProduct
+          : (c.inSolution || c.carriesProduct));
     },
   };
 }

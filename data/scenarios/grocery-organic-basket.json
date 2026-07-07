@@ -1,0 +1,1167 @@
+{
+  "_note": "DOGFOOD SCENARIO #2 - Organic Grocery Basket. A different procurement domain (groceries) stress-testing substitutions, brand + organic preference, pack-size normalization, produce per-lb pricing, and whole-basket (one-store vs split) optimization. Prices are researched from PUBLIC pages (San Diego / Escondido 92029, 2026-07) or clearly-labeled demo; many chain sites gate prices behind store selection, so those are price_unconfirmed on purpose - that is part of the test. No live APIs, no login, no checkout.",
+  "preferences": {
+    "organic": "preferred (not mandatory unless specified)",
+    "storeBrandOk": true,
+    "brandPreferences": {
+      "g-milk": "Lactaid",
+      "g-cereal": "EnviroKidz Panda Puffs",
+      "g-jello-gel": "Jell-O",
+      "g-jello-pud": "Jell-O"
+    },
+    "fulfillment": "price-first for this test; pickup preferred eventually; DO NOT schedule pickup",
+    "optimize": "whole-basket strategies, not just per-item price",
+    "statusConvention": "exact_confirmed = preference met (organic where preferred / preferred brand / spec met). substitute_confirmed = acceptable substitute with preference NOT met (conventional where organic preferred, or store brand where brand preferred). price_unconfirmed = carried but no public price."
+  },
+  "project": {
+    "id": "prj_grocery",
+    "type": "project",
+    "name": "Organic Grocery Basket",
+    "client": null,
+    "notes": "Weekly organic-leaning grocery run. Price-first comparison; pickup later.",
+    "neededBy": null
+  },
+  "shoppingList": {
+    "id": "list_grocery",
+    "type": "shoppingList",
+    "name": "Organic grocery basket",
+    "projectId": "prj_grocery"
+  },
+  "materials": [
+    {
+      "id": "g-milk",
+      "item": "2% Milk (Lactaid preferred)",
+      "qty": 1,
+      "unit": "96oz",
+      "size": "96 fl oz (3/4 gal)",
+      "spec": "lactose-free 2%; Lactaid preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "Lactaid preferred; equivalent lactose-free 2% milk ok as substitute"
+    },
+    {
+      "id": "g-cereal",
+      "item": "Organic Cereal (Panda Puffs preferred)",
+      "qty": 1,
+      "unit": "box",
+      "size": "~10 oz box",
+      "spec": "organic; EnviroKidz Panda Puffs preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "Panda Puffs preferred; comparable organic/natural cereal ok"
+    },
+    {
+      "id": "g-peaches",
+      "item": "Peaches",
+      "qty": 2,
+      "unit": "lb",
+      "size": "per lb",
+      "spec": "organic preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "organic preferred; conventional is a substitute"
+    },
+    {
+      "id": "g-apples",
+      "item": "Apples",
+      "qty": 3,
+      "unit": "lb",
+      "size": "per lb",
+      "spec": "organic preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "organic preferred"
+    },
+    {
+      "id": "g-pears",
+      "item": "Pears",
+      "qty": 2,
+      "unit": "lb",
+      "size": "per lb",
+      "spec": "organic preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "organic preferred"
+    },
+    {
+      "id": "g-watermelon",
+      "item": "Watermelon (whole seedless)",
+      "qty": 1,
+      "unit": "each",
+      "size": "whole",
+      "spec": "organic preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "organic rarely available; conventional is a substitute"
+    },
+    {
+      "id": "g-beef",
+      "item": "Ground Beef 85% lean",
+      "qty": 1,
+      "unit": "lb",
+      "size": "per lb",
+      "spec": "85% lean required",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "must be 85% lean or clearly labeled substitute"
+    },
+    {
+      "id": "g-jello-gel",
+      "item": "Jell-O Gelatin",
+      "qty": 1,
+      "unit": "box",
+      "size": "~3 oz box",
+      "spec": "Jell-O brand preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "separate from pudding; store-brand gelatin ok as substitute"
+    },
+    {
+      "id": "g-jello-pud",
+      "item": "Jell-O Pudding",
+      "qty": 1,
+      "unit": "box",
+      "size": "~3.9 oz box",
+      "spec": "Jell-O brand preferred",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "separate from gelatin; store-brand pudding ok as substitute"
+    },
+    {
+      "id": "g-yogurt",
+      "item": "Plain Greek Yogurt",
+      "qty": 1,
+      "unit": "32oz",
+      "size": "32 oz tub",
+      "spec": "plain; organic preferred, store brand ok",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "organic preferred; store-brand acceptable"
+    },
+    {
+      "id": "g-hint",
+      "item": "Hint Water",
+      "qty": 12,
+      "unit": "bottle",
+      "size": "16 oz bottles",
+      "spec": "flavored water, unsweetened",
+      "category": "grocery",
+      "fulfillment": "pickup",
+      "notes": "sold as singles or 12-pack; normalize to per-bottle"
+    }
+  ],
+  "suppliers": [
+    "walmart",
+    "target",
+    "ralphs",
+    "albertsons",
+    "vons",
+    "sprouts",
+    "trader-joes",
+    "costco",
+    "whole-foods",
+    "frazier-farms"
+  ],
+  "sampleQuotes": [
+    {
+      "id": "gq_walmart",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "walmart",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": 6.38,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Lactaid 96oz, confirmed on page"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": 4.48,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "EnviroKidz Panda Puffs 10oz, confirmed"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": 1.84,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional 2lb bag, per-lb, demo/snippet (organic not found)"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": 1.81,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic Gala 3lb bag, per-lb, demo/snippet"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": 2.22,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic Bartlett 2lb, per-lb, demo/snippet"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": 9.48,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional seedless each, demo/snippet (rollback ~4.67 seen)"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 6.92,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "85/15 all-natural 1lb, demo/snippet"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": 1.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O strawberry, demo/snippet (from 4-ct)"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": 1.24,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O chocolate instant, demo/snippet"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 4.74,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Stonyfield Organic plain 32oz, demo/snippet"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": 1.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Hint variety 12x16oz 17.88 -> per bottle, demo/snippet"
+        }
+      ]
+    },
+    {
+      "id": "gq_target",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "target",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": 6.59,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Lactaid 96oz, confirmed on page"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": 4.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "EnviroKidz Panda Puffs 10.6oz, confirmed"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": 3.5,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic peaches 2lb, per-lb, confirmed"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": 2.2,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic Gala 2lb Good&Gather, per-lb, confirmed"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": 1.33,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional Bartlett 3lb Good&Gather, per-lb, confirmed (organic not found)"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": 5.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional seedless each, confirmed"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 8.19,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "85/15 Good&Gather 1lb, confirmed"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": 1.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O gelatin (6oz box), confirmed"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": 1.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O instant pudding 5.9oz, confirmed"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 3.39,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "Good&Gather plain nonfat Greek 32oz, confirmed (store brand, non-organic)"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": 1.33,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Hint 12-pk, DEMO price (page CAPTCHA-gated; ~15.99/12 typical)"
+        }
+      ]
+    },
+    {
+      "id": "gq_ralphs",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "ralphs",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": 7.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Lactaid 96oz, snippet confirmed"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Panda Puffs 24.7oz page, no price surfaced"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": 3.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional yellow peach per-lb, snippet (organic per-lb not surfaced)"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": 3.79,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic Fuji per-lb, snippet confirmed"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": 3.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic Bartlett/DAnjou per-lb, snippet confirmed"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": 7.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional seedless each, snippet"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 9.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Kroger 85% 1lb, snippet"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": 2.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O gelatin 3oz, snippet"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": 2.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Jell-O instant pudding 3.9oz, snippet"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 4.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Simple Truth Organic plain nonfat Greek 32oz, snippet"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Hint 12-pk/single, no price surfaced"
+        }
+      ]
+    },
+    {
+      "id": "gq_albertsons",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "albertsons",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Lactaid page bot-blocked (Pardon Our Interruption)"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price surfaced"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic peaches, no price"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "O Organics Fuji, no price"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "O Organics pears, no price"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic seedless, no price"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 6.49,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Signature SELECT 85/15 value 4lb 25.96 member -> per-lb, snippet (member/promo)"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 7.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "O Organics plain Greek 32oz, snippet (regular price)"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": 1.08,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Hint variety 12x16oz 12.99 -> per bottle, snippet"
+        }
+      ]
+    },
+    {
+      "id": "gq_vons",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "vons",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "shares Albertsons platform; page blocked"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": 2.5,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "organic yellow peach ~2.50/lb, ambiguous snippet"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 5.0,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Signature SELECT 85% 2lb 9.99 sale -> per-lb, snippet"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 2.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "O Organics plain Greek 32oz, snippet (member)"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no price"
+        }
+      ]
+    },
+    {
+      "id": "gq_sprouts",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "sprouts",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no online per-store dairy price published"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic cereal substitute; no online price"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": 0.69,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional yellow peaches per-lb, weekly-ad recap (organic ~1.48)"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": 0.98,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional Granny Smith per-lb, ad recap"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": 0.98,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "conventional red pears per-lb, ad recap"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "not in seen ad"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 3.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "100% grass-fed ~85/15 per-lb, ad recap (grass-fed substitute)"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Jell-O brand unlikely carried; natural substitute, no price"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "natural substitute, no price"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": 2.5,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "Mountain High 32oz REGULAR (not Greek) 2/5, ad recap"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "no online price"
+        }
+      ]
+    },
+    {
+      "id": "gq_trader_joes",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "trader-joes",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "TJ publishes no online pricing; private-label equivalent likely carried"
+        }
+      ]
+    },
+    {
+      "id": "gq_whole_foods",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "whole-foods",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Lactaid lactose-free carried; price JS/store-gated"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "365/organic cereal; price gated"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic peaches typical; price gated"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic apples; price gated"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic pears; price gated"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "seedless; price gated"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "85/15 grass-fed available; price gated"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Jell-O not carried; natural gelatin substitute; price gated"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "natural pudding substitute; price gated"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "365 Organic Greek 32oz carried; price gated"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Hint carried via Amazon; price gated"
+        }
+      ]
+    },
+    {
+      "id": "gq_costco",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "costco",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "Lactaid bulk multipack; membership-gated"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "bulk organic cereal; membership-gated"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "sold by case; membership-gated"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "organic bag; membership-gated"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "case; membership-gated"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": 7.67,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "seedless each ~7.67 avg (public warehouse tracker); conventional"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": 6.8,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "Kirkland 91% 5-pk 33.99 -> per-lb (85% not stocked; leaner substitute)"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "not typically stocked"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "bulk snack packs only"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "bulk 48oz+ tubs, 32oz size mismatch; membership-gated"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": 1.02,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Hint variety 21-ct 21.49 -> per bottle (no 12-pk; larger pack)"
+        }
+      ]
+    },
+    {
+      "id": "gq_frazier_farms",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "frazier-farms",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-06",
+      "notes": "grocery scenario; in-store pickup; prices researched public / demo (San Diego 92029)",
+      "lineItems": [
+        {
+          "materialId": "g-milk",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-cereal",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-peaches",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-apples",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-pears",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-watermelon",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-beef",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-jello-gel",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-jello-pud",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-yogurt",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        },
+        {
+          "materialId": "g-hint",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "local natural grocer; no online pricing; carries organic produce/dairy; visit or call"
+        }
+      ]
+    }
+  ]
+}
