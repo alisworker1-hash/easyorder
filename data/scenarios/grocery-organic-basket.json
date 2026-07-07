@@ -1,5 +1,5 @@
 {
-  "_note": "DOGFOOD SCENARIO #2 - Organic Grocery Basket. A different procurement domain (groceries) stress-testing substitutions, brand + organic preference, pack-size normalization, produce per-lb pricing, and whole-basket (one-store vs split) optimization. Prices are researched from PUBLIC pages (San Diego / Escondido 92029, 2026-07) or clearly-labeled demo; many chain sites gate prices behind store selection, so those are price_unconfirmed on purpose - that is part of the test. No live APIs, no login, no checkout.",
+  "_note": "DOGFOOD SCENARIO #2 - Organic Grocery Basket. A different procurement domain (groceries) stress-testing substitutions, brand + organic preference, pack-size normalization, produce per-lb pricing, and whole-basket (one-store vs split) optimization. Prices are researched from PUBLIC pages (San Diego / Escondido 92029, 2026-07) or clearly-labeled demo; many chain sites gate prices behind store selection, so those are price_unconfirmed on purpose - that is part of the test. No live APIs, no login, no checkout. Each priced line carries a priceConfidence (price_confirmed = seen on the vendor page; price_demo = snippet/ad; price_estimated = tracker/derived); null-price lines are price_unknown.",
   "preferences": {
     "organic": "preferred (not mandatory unless specified)",
     "storeBrandOk": true,
@@ -179,7 +179,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Lactaid 96oz, confirmed on page"
+          "matchNote": "Lactaid 96oz, confirmed on page",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-cereal",
@@ -187,7 +188,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "EnviroKidz Panda Puffs 10oz, confirmed"
+          "matchNote": "EnviroKidz Panda Puffs 10oz, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-peaches",
@@ -195,7 +197,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional 2lb bag, per-lb, demo/snippet (organic not found)"
+          "matchNote": "conventional 2lb bag, per-lb, demo/snippet (organic not found)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-apples",
@@ -203,7 +206,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic Gala 3lb bag, per-lb, demo/snippet"
+          "matchNote": "organic Gala 3lb bag, per-lb, demo/snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-pears",
@@ -211,7 +215,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic Bartlett 2lb, per-lb, demo/snippet"
+          "matchNote": "organic Bartlett 2lb, per-lb, demo/snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-watermelon",
@@ -219,7 +224,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional seedless each, demo/snippet (rollback ~4.67 seen)"
+          "matchNote": "conventional seedless each, demo/snippet (rollback ~4.67 seen)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-beef",
@@ -227,7 +233,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "85/15 all-natural 1lb, demo/snippet"
+          "matchNote": "85/15 all-natural 1lb, demo/snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -235,7 +242,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O strawberry, demo/snippet (from 4-ct)"
+          "matchNote": "Jell-O strawberry, demo/snippet (from 4-ct)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-pud",
@@ -243,7 +251,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O chocolate instant, demo/snippet"
+          "matchNote": "Jell-O chocolate instant, demo/snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-yogurt",
@@ -251,7 +260,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Stonyfield Organic plain 32oz, demo/snippet"
+          "matchNote": "Stonyfield Organic plain 32oz, demo/snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-hint",
@@ -259,7 +269,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Hint variety 12x16oz 17.88 -> per bottle, demo/snippet"
+          "matchNote": "Hint variety 12x16oz 17.88 -> per bottle, demo/snippet",
+          "priceConfidence": "price_demo"
         }
       ]
     },
@@ -279,7 +290,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Lactaid 96oz, confirmed on page"
+          "matchNote": "Lactaid 96oz, confirmed on page",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-cereal",
@@ -287,7 +299,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "EnviroKidz Panda Puffs 10.6oz, confirmed"
+          "matchNote": "EnviroKidz Panda Puffs 10.6oz, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-peaches",
@@ -295,7 +308,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic peaches 2lb, per-lb, confirmed"
+          "matchNote": "organic peaches 2lb, per-lb, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-apples",
@@ -303,7 +317,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic Gala 2lb Good&Gather, per-lb, confirmed"
+          "matchNote": "organic Gala 2lb Good&Gather, per-lb, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-pears",
@@ -311,7 +326,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional Bartlett 3lb Good&Gather, per-lb, confirmed (organic not found)"
+          "matchNote": "conventional Bartlett 3lb Good&Gather, per-lb, confirmed (organic not found)",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-watermelon",
@@ -319,7 +335,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional seedless each, confirmed"
+          "matchNote": "conventional seedless each, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-beef",
@@ -327,7 +344,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "85/15 Good&Gather 1lb, confirmed"
+          "matchNote": "85/15 Good&Gather 1lb, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-jello-gel",
@@ -335,7 +353,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O gelatin (6oz box), confirmed"
+          "matchNote": "Jell-O gelatin (6oz box), confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-jello-pud",
@@ -343,7 +362,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O instant pudding 5.9oz, confirmed"
+          "matchNote": "Jell-O instant pudding 5.9oz, confirmed",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-yogurt",
@@ -351,7 +371,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "Good&Gather plain nonfat Greek 32oz, confirmed (store brand, non-organic)"
+          "matchNote": "Good&Gather plain nonfat Greek 32oz, confirmed (store brand, non-organic)",
+          "priceConfidence": "price_confirmed"
         },
         {
           "materialId": "g-hint",
@@ -359,7 +380,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Hint 12-pk, DEMO price (page CAPTCHA-gated; ~15.99/12 typical)"
+          "matchNote": "Hint 12-pk, DEMO price (page CAPTCHA-gated; ~15.99/12 typical)",
+          "priceConfidence": "price_demo"
         }
       ]
     },
@@ -379,7 +401,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Lactaid 96oz, snippet confirmed"
+          "matchNote": "Lactaid 96oz, snippet confirmed",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-cereal",
@@ -395,7 +418,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional yellow peach per-lb, snippet (organic per-lb not surfaced)"
+          "matchNote": "conventional yellow peach per-lb, snippet (organic per-lb not surfaced)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-apples",
@@ -403,7 +427,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic Fuji per-lb, snippet confirmed"
+          "matchNote": "organic Fuji per-lb, snippet confirmed",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-pears",
@@ -411,7 +436,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic Bartlett/DAnjou per-lb, snippet confirmed"
+          "matchNote": "organic Bartlett/DAnjou per-lb, snippet confirmed",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-watermelon",
@@ -419,7 +445,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional seedless each, snippet"
+          "matchNote": "conventional seedless each, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-beef",
@@ -427,7 +454,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Kroger 85% 1lb, snippet"
+          "matchNote": "Kroger 85% 1lb, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -435,7 +463,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O gelatin 3oz, snippet"
+          "matchNote": "Jell-O gelatin 3oz, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-pud",
@@ -443,7 +472,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Jell-O instant pudding 3.9oz, snippet"
+          "matchNote": "Jell-O instant pudding 3.9oz, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-yogurt",
@@ -451,7 +481,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Simple Truth Organic plain nonfat Greek 32oz, snippet"
+          "matchNote": "Simple Truth Organic plain nonfat Greek 32oz, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-hint",
@@ -527,7 +558,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Signature SELECT 85/15 value 4lb 25.96 member -> per-lb, snippet (member/promo)"
+          "matchNote": "Signature SELECT 85/15 value 4lb 25.96 member -> per-lb, snippet (member/promo)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -551,7 +583,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "O Organics plain Greek 32oz, snippet (regular price)"
+          "matchNote": "O Organics plain Greek 32oz, snippet (regular price)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-hint",
@@ -559,7 +592,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Hint variety 12x16oz 12.99 -> per bottle, snippet"
+          "matchNote": "Hint variety 12x16oz 12.99 -> per bottle, snippet",
+          "priceConfidence": "price_demo"
         }
       ]
     },
@@ -595,7 +629,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "organic yellow peach ~2.50/lb, ambiguous snippet"
+          "matchNote": "organic yellow peach ~2.50/lb, ambiguous snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-apples",
@@ -627,7 +662,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Signature SELECT 85% 2lb 9.99 sale -> per-lb, snippet"
+          "matchNote": "Signature SELECT 85% 2lb 9.99 sale -> per-lb, snippet",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -651,7 +687,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "O Organics plain Greek 32oz, snippet (member)"
+          "matchNote": "O Organics plain Greek 32oz, snippet (member)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-hint",
@@ -695,7 +732,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional yellow peaches per-lb, weekly-ad recap (organic ~1.48)"
+          "matchNote": "conventional yellow peaches per-lb, weekly-ad recap (organic ~1.48)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-apples",
@@ -703,7 +741,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional Granny Smith per-lb, ad recap"
+          "matchNote": "conventional Granny Smith per-lb, ad recap",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-pears",
@@ -711,7 +750,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "conventional red pears per-lb, ad recap"
+          "matchNote": "conventional red pears per-lb, ad recap",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-watermelon",
@@ -727,7 +767,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "100% grass-fed ~85/15 per-lb, ad recap (grass-fed substitute)"
+          "matchNote": "100% grass-fed ~85/15 per-lb, ad recap (grass-fed substitute)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -751,7 +792,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "Mountain High 32oz REGULAR (not Greek) 2/5, ad recap"
+          "matchNote": "Mountain High 32oz REGULAR (not Greek) 2/5, ad recap",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-hint",
@@ -1019,7 +1061,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "seedless each ~7.67 avg (public warehouse tracker); conventional"
+          "matchNote": "seedless each ~7.67 avg (public warehouse tracker); conventional",
+          "priceConfidence": "price_estimated"
         },
         {
           "materialId": "g-beef",
@@ -1027,7 +1070,8 @@
           "available": true,
           "leadDays": 0,
           "status": "substitute_confirmed",
-          "matchNote": "Kirkland 91% 5-pk 33.99 -> per-lb (85% not stocked; leaner substitute)"
+          "matchNote": "Kirkland 91% 5-pk 33.99 -> per-lb (85% not stocked; leaner substitute)",
+          "priceConfidence": "price_demo"
         },
         {
           "materialId": "g-jello-gel",
@@ -1059,7 +1103,8 @@
           "available": true,
           "leadDays": 0,
           "status": "exact_confirmed",
-          "matchNote": "Hint variety 21-ct 21.49 -> per bottle (no 12-pk; larger pack)"
+          "matchNote": "Hint variety 21-ct 21.49 -> per bottle (no 12-pk; larger pack)",
+          "priceConfidence": "price_demo"
         }
       ]
     },

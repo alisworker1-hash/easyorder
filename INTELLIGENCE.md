@@ -12,13 +12,21 @@ missing fields) and recommends the **next best action**. An option with a gap is
 candidate to advance, not a row to delete. Unconfirmed is never treated as $0 and never
 treated as unavailable.
 
-## Two kinds of confidence
+## Kinds of confidence
 
 - **Supplier-level confidence** (category-fit): how confident we are a supplier serves the
   need's category. Produced by the Supplier Discovery Engine, before pricing (see
   [DISCOVERY.md](DISCOVERY.md)). Flows through as `supplierSummaries[].supplierConfidence`.
-- **Per-line confidence** (price/spec-fit): the score below, per supplier/item option, after
-  a quote exists.
+- **Per-line confidence** (match/spec-fit): the 0-100 score below, per supplier/item option.
+- **Price confidence** (how much to trust the *number*): orthogonal to the match. A line can
+  be an exact product match whose price is only a snippet/demo figure. `PRICE_CONFIDENCE` in
+  `core/models.js`: `price_confirmed` (seen on the vendor page), `price_estimated`
+  (tracker/derived), `price_demo` (snippet/ad/manual), `price_unknown` (no number, never $0).
+  The engine still uses estimated/demo prices when they're the best data, but: near-ties in
+  an assignment prefer the confirmed price; a demo/estimated price deducts from the per-line
+  score; each `supplierSummaries` row reports a `priceConfidence` breakdown +
+  `priceConfidenceScore` (0-1); and headline picks or splits built on estimated/demo prices
+  raise a warning. Unknown is never treated as free.
 
 ## Per-line confidence score (0-100)
 

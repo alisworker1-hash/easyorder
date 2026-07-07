@@ -50,6 +50,25 @@ export function deriveLineStatus(li) {
   return MATCH_STATUS.EXACT_CONFIRMED;
 }
 
+/* Price confidence is ORTHOGONAL to match status: a line can be an exact product match
+   whose PRICE is only a snippet/demo figure. Distinguishes how much to trust the number.
+     price_confirmed  seen on the vendor's own product page
+     price_estimated  derived/averaged (a tracker, a pack-to-unit computation)
+     price_demo       snippet / ad recap / manually entered placeholder
+     price_unknown    no number at all (never treated as $0) */
+export const PRICE_CONFIDENCE = {
+  CONFIRMED: "price_confirmed", ESTIMATED: "price_estimated",
+  DEMO: "price_demo", UNKNOWN: "price_unknown",
+};
+export const PRICE_CONFIDENCE_RANK = {
+  price_confirmed: 3, price_estimated: 2, price_demo: 1, price_unknown: 0,
+};
+/* Read a line's price confidence; default keeps legacy priced lines "confirmed". */
+export function derivePriceConfidence(li) {
+  if (li && li.priceConfidence && PRICE_CONFIDENCE_RANK[li.priceConfidence] != null) return li.priceConfidence;
+  return (li && li.unitPrice != null) ? PRICE_CONFIDENCE.CONFIRMED : PRICE_CONFIDENCE.UNKNOWN;
+}
+
 /* ---- ids & time (kept tiny so models stay dependency-free) ---- */
 let _seq = 0;
 export function uid(prefix = "id") {
@@ -164,6 +183,7 @@ export function createQuote({
       };
       line.status = li.status && Object.values(MATCH_STATUS).includes(li.status)
         ? li.status : deriveLineStatus(line);
+      line.priceConfidence = derivePriceConfidence(li);
       if (li.matchNote) line.matchNote = String(li.matchNote);
       if (Array.isArray(li.missingFields) && li.missingFields.length) line.missingFields = li.missingFields;
       return line;

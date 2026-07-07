@@ -9,7 +9,7 @@
      procurementEffort how much work/friction an option costs the buyer (0 = effortless)
 */
 
-import { MATCH_STATUS } from "./models.js";
+import { MATCH_STATUS, PRICE_CONFIDENCE, derivePriceConfidence } from "./models.js";
 
 /* ---------------- missing fields ---------------- */
 
@@ -75,17 +75,25 @@ const STATUS_IMPLIES = {
   [MATCH_STATUS.PRICE_UNCONFIRMED]: 1,
 };
 
+/* Non-confirmed PRICE confidence lowers the option score (a demo/snippet number is less
+   trustworthy than a page-confirmed one), and is shown as an explainable deduction. */
+const PRICE_PENALTY = { [PRICE_CONFIDENCE.ESTIMATED]: 5, [PRICE_CONFIDENCE.DEMO]: 10 };
+
 export function confidenceScore(line, quote, supplier) {
   const status = line.status || MATCH_STATUS.EXACT_CONFIRMED;
   const base = STATUS_BASE[status] ?? 60;
   if (status === MATCH_STATUS.NOT_RECOMMENDED)
-    return { score: 0, base: 0, deductions: [], missingFields: missingFieldsFor(line, quote, supplier) };
+    return { score: 0, base: 0, deductions: [], missingFields: missingFieldsFor(line, quote, supplier),
+             priceConfidence: derivePriceConfidence(line) };
   const missing = missingFieldsFor(line, quote, supplier);
   const implied = STATUS_IMPLIES[status] || 0;
   const extra = Math.max(0, missing.length - implied);
   const deductions = missing.slice(implied).map((f) => ({ field: f, points: 5 }));
-  const score = Math.max(40, Math.min(100, base - 5 * extra));
-  return { score, base, deductions, missingFields: missing };
+  const priceConfidence = derivePriceConfidence(line);
+  const pricePenalty = PRICE_PENALTY[priceConfidence] || 0;
+  if (pricePenalty) deductions.push({ field: priceConfidence, points: pricePenalty });
+  const score = Math.max(40, Math.min(100, base - 5 * extra - pricePenalty));
+  return { score, base, deductions, missingFields: missing, priceConfidence };
 }
 
 /* ---------------- next best action ---------------- */
@@ -186,6 +194,7 @@ export function evaluateOption(line, quote, supplier, material) {
     item: (material && material.item) || line.materialId,
     status: line.status || MATCH_STATUS.EXACT_CONFIRMED,
     unitPrice: line.unitPrice == null ? null : Number(line.unitPrice),
+    priceConfidence: conf.priceConfidence,
     leadDays: line.leadDays == null ? null : Number(line.leadDays),
     fulfillment: quote.fulfillment,
     confidence: conf.score,

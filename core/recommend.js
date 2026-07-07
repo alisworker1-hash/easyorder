@@ -12,7 +12,8 @@
 */
 
 import { toCents, fromCents, round2, money, displayLanded } from "./money.js";
-import { MATCH_STATUS, CONFIRMED_STATUSES, deriveLineStatus } from "./models.js";
+import { MATCH_STATUS, CONFIRMED_STATUSES, deriveLineStatus,
+  PRICE_CONFIDENCE, PRICE_CONFIDENCE_RANK, derivePriceConfidence } from "./models.js";
 import { evaluateOption, procurementEffort, shippingKnown, ACTION } from "./intelligence.js";
 import { estimateShipping, landedTotal, meetsMinimum } from "./shipping.js";
 
@@ -51,10 +52,12 @@ function classifyLines(materials, quotes) {
       if (CONFIRMED_STATUSES.has(status) && li.unitPrice != null && li.available !== false) {
         const qty = qtyOf(li.materialId);
         const unitPriceCents = toCents(li.unitPrice);
+        const priceConfidence = derivePriceConfidence(li);
         offers.get(li.materialId).push({
           supplierId: q.supplierId, unitPriceCents, qty,
           lineCents: unitPriceCents * qty,
           leadDays: base.leadDays, status,
+          priceConfidence, priceRank: PRICE_CONFIDENCE_RANK[priceConfidence] ?? 0,
           matchNote: li.matchNote || "",
         });
       } else {
@@ -86,7 +89,8 @@ function evalAssignment(assignment, materials, feeMap, nameOf) {
       supplierId: offer.supplierId, supplierName: nameOf(offer.supplierId),
       unitPrice: fromCents(offer.unitPriceCents), lineTotal: fromCents(offer.lineCents),
       leadDays: offer.leadDays,
-      status: offer.status, ...(offer.matchNote ? { matchNote: offer.matchNote } : {}),
+      status: offer.status, priceConfidence: offer.priceConfidence,
+      ...(offer.matchNote ? { matchNote: offer.matchNote } : {}),
     });
   }
   let feeCents = 0;
@@ -105,11 +109,24 @@ function evalAssignment(assignment, materials, feeMap, nameOf) {
 
 /* ---- assignment strategies ---- */
 
+/* Prefer the cheaper offer, but when two are within a whisker (<= 1% or 3c), prefer the
+   one with the more trustworthy price (confirmed > estimated > demo). "Prefer confirmed
+   when totals are close" - never overpays materially for confidence. */
+function cheaperOffer(a, b) {
+  const eps = Math.max(3, Math.round(Math.min(a.lineCents, b.lineCents) * 0.01));
+  if (Math.abs(a.lineCents - b.lineCents) <= eps) {
+    const ra = a.priceRank || 0, rb = b.priceRank || 0;
+    if (ra !== rb) return rb > ra ? b : a;   // near-tie: prefer confirmed price
+    return a.lineCents <= b.lineCents ? a : b; // equal confidence: cheaper (stable)
+  }
+  return a.lineCents < b.lineCents ? a : b;
+}
+
 function assignCheapest(offers) {
   const a = new Map();
   for (const [mid, list] of offers) {
     if (!list.length) continue;
-    a.set(mid, list.reduce((best, o) => (o.lineCents < best.lineCents ? o : best)));
+    a.set(mid, list.reduce(cheaperOffer));
   }
   return a;
 }
@@ -146,7 +163,7 @@ function cheapestWithin(offers, mats, allowed) {
   const a = new Map();
   for (const mid of mats) {
     const list = offers.get(mid).filter((o) => allowed.has(o.supplierId));
-    if (list.length) a.set(mid, list.reduce((b, o) => (o.lineCents < b.lineCents ? o : b)));
+    if (list.length) a.set(mid, list.reduce(cheaperOffer));
   }
   return a;
 }
@@ -388,6 +405,8 @@ export function recommend(materials, quotes, opts = {}) {
   /* Per-supplier summary: coverage, confirmed parts total, effort/convenience. */
   const supplierSummaries = (quotes || []).map((q) => {
     let confirmed = 0, candidate = 0, cents = 0, exactOnly = true, exactCount = 0, subCount = 0;
+    const priceConf = { price_confirmed: 0, price_estimated: 0, price_demo: 0 };
+    let priceRankSum = 0;
     for (const li of q.lineItems || []) {
       const m = materialOf(li.materialId);
       if (!m) continue;
@@ -396,8 +415,14 @@ export function recommend(materials, quotes, opts = {}) {
       if (CONFIRMED_STATUSES.has(st) && li.unitPrice != null && li.available !== false) {
         confirmed++; cents += toCents(li.unitPrice) * qtyOf(li.materialId);
         if (st === MATCH_STATUS.EXACT_CONFIRMED) exactCount++; else { exactOnly = false; subCount++; }
+        const pc = derivePriceConfidence(li);
+        if (priceConf[pc] != null) priceConf[pc]++;
+        priceRankSum += PRICE_CONFIDENCE_RANK[pc] ?? 0;
       } else { candidate++; exactOnly = false; }
     }
+    /* price-trust of this basket: 1 = all page-confirmed, lower = leans on demo/estimated */
+    const priceConfidenceScore = confirmed ? round2(priceRankSum / (confirmed * 3)) : 0;
+    const softPriceCount = priceConf.price_estimated + priceConf.price_demo;
     const sup = supplierOf(q.supplierId);
     const effort = procurementEffort(q, sup, materials);
     const partsTotal = fromCents(cents);
@@ -416,6 +441,8 @@ export function recommend(materials, quotes, opts = {}) {
       allExactConfirmed: exactOnly && confirmed === materials.length,
       /* exact vs substitute counts drive the "preference met" (e.g. organic) strategy */
       exactCount, substituteCount: subCount,
+      /* price-trust: how much of this basket's total rests on confirmed vs demo/estimated prices */
+      priceConfidence: priceConf, priceConfidenceScore, softPriceCount,
       confirmedPartsTotal: partsTotal,
       /* shipping is now a first-class, estimated field with its own confidence */
       shipping, shippingKnown: landed.shippingKnown,
@@ -444,18 +471,25 @@ export function recommend(materials, quotes, opts = {}) {
   const bestExactSpec = supplierSummaries.filter((s) => s.allExactConfirmed && s.meetsMinimum)
     .sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0] || null;
 
-  /* Best Price Today: cheapest COMPLETE order you can place now. Prefer suppliers whose
-     landed cost is known (pickup or confirmed shipping); fall back to parts when none is. */
+  /* When two full-coverage baskets land within ~2%, prefer the one built on more trustworthy
+     (confirmed) prices. Keeps price primary, breaks near-ties toward certainty. */
+  const preferConfirmedClose = (list, keyOf, relTol = 0.02) => {
+    if (!list.length) return null;
+    const sorted = list.slice().sort((a, b) => keyOf(a) - keyOf(b));
+    const best = keyOf(sorted[0]);
+    const close = sorted.filter((s) => best <= 0 ? keyOf(s) <= 0 : (keyOf(s) - best) / best <= relTol);
+    return close.sort((a, b) => b.priceConfidenceScore - a.priceConfidenceScore || keyOf(a) - keyOf(b))[0];
+  };
+  const landedKey = (s) => s.landedShippingKnown ? s.landedTotal : s.confirmedPartsTotal;
+
+  /* Best Price Today: cheapest COMPLETE order you can place now, near-ties preferring confirmed prices. */
   const withLanded = fullCover.filter((s) => s.landedShippingKnown);
-  const bestPriceToday = (withLanded.length
-    ? withLanded.slice().sort((a, b) => a.landedTotal - b.landedTotal)[0]
-    : fullCover.slice().sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0]) || null;
+  const bestPriceToday = preferConfirmedClose(withLanded.length ? withLanded : fullCover, landedKey);
 
   /* One-Store Best: cheapest SINGLE store that covers the whole basket in one trip - the
-     grocery "one trip vs cherry-pick" tradeoff against bestLowestCost (the multi-store split). */
-  const bestOneStore = (withLanded.length
-    ? withLanded.slice().sort((a, b) => a.landedTotal - b.landedTotal)[0]
-    : fullCover.slice().sort((a, b) => a.confirmedPartsTotal - b.confirmedPartsTotal)[0]) || null;
+     grocery "one trip vs cherry-pick" tradeoff against bestLowestCost (the multi-store split).
+     Near-ties prefer confirmed prices. */
+  const bestOneStore = preferConfirmedClose(withLanded.length ? withLanded : fullCover, landedKey);
 
   /* Best Organic / preference-met: the full-coverage store that satisfies the most PREFERRED
      (exact_confirmed) lines - e.g. organic/brand preference - then cheapest. Distinguishes an
@@ -509,6 +543,14 @@ export function recommend(materials, quotes, opts = {}) {
   for (const s of supplierSummaries.filter((x) => !x.meetsMinimum && x.itemsConfirmed > 0))
     warnings.push(`${s.supplierName} requires a $${s.minOrderValue} minimum order; this order ` +
       `($${s.confirmedPartsTotal.toFixed(2)}) is $${s.minOrderShortfall.toFixed(2)} short and can't be placed as-is.`);
+  /* estimated/demo pricing in the headline picks - the total isn't fully page-confirmed */
+  for (const pick of [bestOneStore, bestPriceToday].filter(Boolean))
+    if (pick.softPriceCount > 0)
+      warnings.push(`${pick.supplierName}: ${pick.softPriceCount} of its prices are estimated/demo, ` +
+        `not page-confirmed; the total is approximate until confirmed.`);
+  const softSplit = lowestPrice.rows.filter((r) => r.priceConfidence && r.priceConfidence !== PRICE_CONFIDENCE.CONFIRMED).length;
+  if (softSplit > 0)
+    warnings.push(`Lowest-cost split relies on ${softSplit} estimated/demo price(s); confirm those before counting on the total.`);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -531,7 +573,7 @@ export function recommend(materials, quotes, opts = {}) {
     options,
     supplierSummaries,
     nextActions,
-    warnings,
+    warnings: [...new Set(warnings)],
     candidates: candidateList,
     excluded: excludedList,
     mathNote: "Recommendation math uses only confirmed-tier lines (exact_confirmed, " +
