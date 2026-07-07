@@ -12,17 +12,23 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
-const LIST_KEY = "hwMaterials"; // eo.pro.hwMaterials
-const STATE = { dir: [], scenarios: {}, rec: null, uni: null, cards: [], materials: null };
+/* Seeded scenarios: the command bar routes a need to one of these via core/intent.js. */
+const SCENARIOS = {
+  fastener: { file: "../data/sample-hardware.json", category: "fasteners", listKey: "hwMaterials",
+    domain: "hardware", defaultFulfillment: "delivery" },
+  grocery:  { file: "../data/scenarios/grocery-organic-basket.json", category: "grocery", listKey: "grocMaterials",
+    domain: "grocery", defaultFulfillment: "pickup" },
+};
+const STATE = { dir: [], scenarios: {}, active: null, rec: null, uni: null, cards: [], materials: null };
 
 /* ---------- data ---------- */
 async function loadData() {
-  const [dir, hw] = await Promise.all([
+  const [dir, ...scs] = await Promise.all([
     fetch("../data/suppliers.json").then((r) => r.json()),
-    fetch("../data/sample-hardware.json").then((r) => r.json()),
+    ...Object.values(SCENARIOS).map((s) => fetch(s.file).then((r) => r.json())),
   ]);
   STATE.dir = dir.suppliers;
-  STATE.scenarios.fastener = hw; // the one seeded scenario for this slice
+  Object.keys(SCENARIOS).forEach((k, i) => { STATE.scenarios[k] = scs[i]; });
 }
 
 /* ---------- run a need through the engine ---------- */
@@ -30,33 +36,35 @@ async function run(text) {
   const intent = resolveIntent(text, { projects: [] });
   const seed = intent.args.seed;
 
-  // This demo slice is seeded only for the fastener scenario.
-  if (seed !== "fastener") {
+  const cfg = SCENARIOS[seed];
+  // Two seeded scenarios today; other intents route correctly but have no data behind them.
+  if (!cfg) {
     renderRoute(intent, null);
-    $("#results").innerHTML = `<div class="empty">This first demo slice is seeded for the
-      <b>fastener</b> scenario. Try <button class="chip" data-q="1/2-13 yellow zinc hardware">1/2-13 yellow zinc hardware</button>.
-      <br><br>The command bar already routed your request via the engine
-      (<b>${esc(intent.workspace)} / ${esc(intent.action)}</b>) - only the seeded data set is limited here.</div>`;
+    $("#listSection").hidden = true;
+    $("#results").innerHTML = `<div class="empty">The command bar routed your request via the engine
+      (<b>${esc(intent.workspace)} / ${esc(intent.action)}</b>), but only two scenarios are seeded with data.
+      Try <button class="chip" data-q="1/2-13 yellow zinc hardware">1/2-13 yellow zinc hardware</button>
+      or <button class="chip" data-q="organic grocery basket">organic grocery basket</button>.</div>`;
     return;
   }
 
-  const sc = STATE.scenarios.fastener;
-  const need = { query: text, productCategory: "fasteners" };
-  // discovery is category-based (independent of the exact list), so compute it once
+  STATE.active = { ...cfg, seed, scenario: STATE.scenarios[seed] };
+  const need = { query: text, productCategory: cfg.category };
+  // discovery is category-based (independent of the exact list), so compute it once per need
   STATE.uni = await discoverSuppliers(need, { directory: STATE.dir });
-  loadMaterials(sc);
+  loadMaterials();
   renderRoute(intent, STATE.uni);
   $("#listSection").hidden = false;
   renderList();
   recomputeAndRenderCards();
 }
 
-/* ---------- material list (editable, persisted, live re-run) ---------- */
-function loadMaterials(sc) {
-  const saved = proStore.get(LIST_KEY, null);
-  STATE.materials = Array.isArray(saved) && saved.length ? saved : clone(sc.materials);
+/* ---------- material list (editable, persisted per scenario, live re-run) ---------- */
+function loadMaterials() {
+  const saved = proStore.get(STATE.active.listKey, null);
+  STATE.materials = Array.isArray(saved) && saved.length ? saved : clone(STATE.active.scenario.materials);
 }
-function saveMaterials() { proStore.set(LIST_KEY, STATE.materials); }
+function saveMaterials() { proStore.set(STATE.active.listKey, STATE.materials); }
 
 function matRow(m) {
   const sel = (v) => (m.fulfillment === v ? " selected" : "");
@@ -85,8 +93,7 @@ function scheduleRecompute(immediate) {
   _t = setTimeout(recomputeAndRenderCards, 350);
 }
 function recomputeAndRenderCards() {
-  const sc = STATE.scenarios.fastener;
-  STATE.rec = recommend(STATE.materials, sc.sampleQuotes, { suppliers: STATE.uni.candidates });
+  STATE.rec = recommend(STATE.materials, STATE.active.scenario.sampleQuotes, { suppliers: STATE.uni.candidates });
   STATE.cards = buildCards(STATE.rec);
   renderCards(STATE.cards);
 }
@@ -127,17 +134,28 @@ function badgeFor(s) {
   return { kind: "warn", text: "Shipping est. pending" };
 }
 
+/* price-trust note: how much of this basket's total is page-confirmed vs demo/estimated */
+function priceNoteFor(s) {
+  if (!s || !s.itemsConfirmed || !s.softPriceCount) return "";
+  const conf = s.priceConfidence.price_confirmed;
+  return `${conf} confirmed · ${s.softPriceCount} est./demo price${s.softPriceCount === 1 ? "" : "s"}`;
+}
+
 function supplierCard(title, icon, s, reason, extraBadge) {
   const badge = extraBadge || badgeFor(s);
   const landed = s.itemsConfirmed === 0 ? "Call for a quote" : displayLanded(s.confirmedPartsTotal, s.shipping);
-  return { title, icon, supplierName: s.supplierName, landed, reason,
+  return { title, icon, supplierName: s.supplierName, landed, reason, priceNote: priceNoteFor(s),
     badge, cta: s.recommendedAction.label, breakdown: { kind: "supplier", supplierId: s.supplierId } };
 }
 
 function splitCard(title, icon, low, reason) {
+  // If every store in the split is in-store pickup, there's no shipping to add.
+  const allPickup = (low.suppliers || []).length &&
+    low.suppliers.every((id) => { const s = sumOf(id); return s && s.fulfillment === "pickup"; });
+  const landed = allPickup ? `${money(low.total)} (${low.supplierCount} stores)` : displayLanded(low.total, null);
   return { title, icon, supplierName: `${low.supplierCount} suppliers (split buy)`,
-    landed: displayLanded(low.total, null), reason,
-    badge: { kind: "warn", text: `${low.supplierCount} vendors` },
+    landed, reason,
+    badge: { kind: "warn", text: `${low.supplierCount} ${allPickup ? "stores" : "vendors"}` },
     cta: "Review split", breakdown: { kind: "split" } };
 }
 
@@ -146,8 +164,12 @@ function futureCard(title, icon, note) {
 }
 
 function buildCards(rec) {
+  if (!rec.coverage.covered.length) return []; // nothing sourced yet
+  return STATE.active.domain === "grocery" ? groceryCards(rec) : hardwareCards(rec);
+}
+
+function hardwareCards(rec) {
   const cards = [];
-  if (!rec.coverage.covered.length) return cards; // nothing sourced yet
   const basis = rec.bestConfirmed.basis;
   const axis = rec.axes[basis];
   if (axis.suppliers.length === 1)
@@ -156,11 +178,9 @@ function buildCards(rec) {
   else
     cards.push(splitCard("Best Overall", "🧭", rec.bestLowestCost,
       "Best balance; the cheapest path splits across suppliers"));
-
   if (rec.bestPriceToday)
     cards.push(supplierCard("Best Price Today", "💰", rec.bestPriceToday,
       "Cheapest complete order you can place now"));
-
   if (rec.bestPickupCandidate) {
     const s = sumOf(rec.bestPickupCandidate.supplierId);
     const same = rec.bestPickupCandidate.sameDayCapable;
@@ -168,20 +188,43 @@ function buildCards(rec) {
       same ? "In stock now for same-day pickup" : "Fastest to get in hand",
       same ? { kind: "good", text: "Same-day" } : null));
   }
-
   if (rec.bestExactSpec)
     cards.push(supplierCard("Best Exact Spec", "🎯", rec.bestExactSpec,
       "Every line an exact spec match, cheapest"));
-
   if (rec.bestLocal)
     cards.push(supplierCard("Best Local Supplier", "📍", rec.bestLocal,
       "A nearby business worth a call before buying online"));
-
   cards.push(splitCard("Lowest Cost", "🧾", rec.bestLowestCost,
     "Cheapest per item; may split across suppliers and shipments"));
-
   cards.push(futureCard("Best Bulk Value", "📦", "Coming soon - needs quantity-break pricing"));
   cards.push(futureCard("Best Subscription", "🔁", "Profile-based recommendation coming later"));
+  return cards;
+}
+
+function groceryCards(rec) {
+  const cards = [];
+  // Best Overall = the cheapest path, which for groceries is the multi-store split.
+  cards.push(splitCard("Best Overall", "🧭", rec.bestLowestCost,
+    `Cheapest overall by shopping ${rec.bestLowestCost.supplierCount} stores; saves the most, but more stops`));
+  if (rec.bestOneStore)
+    cards.push(supplierCard("One-Store Best", "🛒", rec.bestOneStore,
+      "Everything in one trip; cheapest single store"));
+  if (rec.bestOrganic) {
+    const o = rec.bestOrganic;
+    cards.push(supplierCard("Organic Preferred", "🌿", o,
+      `Most preferred/organic items: ${o.exactCount} of ${o.itemsTotal} match your preference`,
+      { kind: o.exactCount >= o.itemsTotal - 1 ? "good" : "warn", text: `${o.exactCount}/${o.itemsTotal} organic` }));
+  }
+  if (rec.bestPickupCandidate) {
+    const s = sumOf(rec.bestPickupCandidate.supplierId);
+    cards.push(supplierCard("Need It Today", "⏱️", s,
+      rec.bestPickupCandidate.sameDayCapable ? "In stock now for same-day pickup" : "Fastest pickup",
+      rec.bestPickupCandidate.sameDayCapable ? { kind: "good", text: "Same-day" } : null));
+  }
+  if (rec.bestLocal)
+    cards.push(supplierCard("Best Local Grocery", "📍", rec.bestLocal,
+      "A nearby grocer worth a visit or a call"));
+  cards.push(futureCard("Best Bulk Value", "📦", "Coming soon - needs quantity-break pricing (e.g. Costco packs)"));
   return cards;
 }
 
@@ -205,6 +248,7 @@ function cardHTML(c, i) {
       <div class="card-top"><span class="card-title">${c.icon} ${esc(c.title)}</span>${b}</div>
       <div class="card-supplier">${esc(c.supplierName)}</div>
       <div class="card-landed">${landedHTML(c.landed)}</div>
+      ${c.priceNote ? `<div class="price-note" title="Price confidence">🔎 ${esc(c.priceNote)}</div>` : ""}
       <p class="card-reason">${esc(c.reason)}</p>
       <div class="card-foot">
         <button class="cta" data-cta="${i}">${esc(c.cta)}</button>
@@ -227,8 +271,8 @@ function coverageBanner() {
 function renderCards(cards) {
   const banner = coverageBanner();
   if (!cards.length) {
-    $("#results").innerHTML = banner + `<div class="empty">No sourced items yet. Add an item that a
-      demo supplier carries, or press <b>Reset to sample</b> to restore the fastener list.</div>`;
+    $("#results").innerHTML = banner + `<div class="empty">No sourced items yet. Add an item a
+      demo supplier carries, or press <b>Reset to sample</b> to restore the seeded list.</div>`;
     return;
   }
   $("#results").innerHTML = banner + cards.map(cardHTML).join("");
@@ -257,19 +301,23 @@ function cmpTable(highlightId) {
       : "unknown";
     const landed = s.itemsConfirmed === 0 ? "-" : displayLanded(s.confirmedPartsTotal, s.shipping);
     const minCell = s.meetsMinimum ? "-" : `min ${money(s.minOrderValue)} (short ${money(s.minOrderShortfall)})`;
+    const price = s.itemsConfirmed === 0 ? "-"
+      : s.softPriceCount === 0 ? `<span class="badge good">confirmed</span>`
+      : `<span class="badge warn">${s.priceConfidence.price_confirmed} conf · ${s.softPriceCount} est/demo</span>`;
     return `<tr class="${dim}${win}">
       <td><b>${esc(s.supplierName)}</b></td>
       <td class="num">${s.itemsConfirmed}/${s.itemsTotal}</td>
       <td class="num">${money(s.confirmedPartsTotal)}</td>
       <td class="num">${esc(ship)}</td>
       <td class="num">${esc(landed)}</td>
+      <td>${price}</td>
       <td class="num">${minCell === "-" ? "-" : `<span class="badge bad">${esc(minCell)}</span>`}</td>
       <td class="flags">${esc(optionFlags(s.supplierId) || "-")}</td>
       <td>${esc(s.recommendedAction.label)}</td>
     </tr>`;
   }).join("");
   return `<div class="tbl-scroll"><table class="cmp">
-    <thead><tr><th>Supplier</th><th>Cover</th><th>Parts</th><th>Shipping</th><th>Landed</th><th>Min order</th><th>Missing / notes</th><th>Next action</th></tr></thead>
+    <thead><tr><th>Supplier</th><th>Cover</th><th>Parts</th><th>Shipping</th><th>Landed</th><th>Price</th><th>Min order</th><th>Missing / notes</th><th>Next action</th></tr></thead>
     <tbody>${tr}</tbody></table></div>`;
 }
 
@@ -333,14 +381,15 @@ document.addEventListener("click", (e) => {
     saveMaterials(); renderList(); recomputeAndRenderCards(); return;
   }
   if (e.target.id === "addRow") {
-    STATE.materials.push(createMaterialLine({ item: "", qty: 1, unit: "each", category: "fasteners", fulfillment: "delivery" }));
+    STATE.materials.push(createMaterialLine({ item: "", qty: 1, unit: "each",
+      category: STATE.active.category, fulfillment: STATE.active.defaultFulfillment }));
     saveMaterials(); renderList(); recomputeAndRenderCards();
     const rows = $("#mattbl").querySelectorAll("tbody tr");
     const last = rows[rows.length - 1]; if (last) last.querySelector("input").focus();
     return;
   }
   if (e.target.id === "resetList") {
-    STATE.materials = clone(STATE.scenarios.fastener.materials);
+    STATE.materials = clone(STATE.active.scenario.materials);
     saveMaterials(); renderList(); recomputeAndRenderCards(); return;
   }
   const bk = e.target.closest("[data-bk]");

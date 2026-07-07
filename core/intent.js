@@ -16,6 +16,7 @@ export function detectSeed(text) {
   const t = String(text || "").toLowerCase();
   if (/\bshed\b/.test(t)) return "shed";
   if (/\b(fastener|bolt|nut|washer|screw|zinc|grade\s*8|hex)\b/.test(t)) return "fastener";
+  if (/\b(grocery|groceries|milk|cereal|yogurt|produce|organic|peach|apple|pear|watermelon|jell-?o|pudding|gelatin|lactaid|greek|hint water|basket)\b/.test(t)) return "grocery";
   return null;
 }
 

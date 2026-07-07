@@ -76,6 +76,9 @@ button { font-family: inherit; cursor: pointer; }
 .rowdel:hover { color: var(--bad); border-color: var(--bad); }
 .list-hint { color: var(--muted); font-size: .82rem; margin: 10px 2px 0; }
 
+/* price-confidence note on a strategy card */
+.price-note { font-size: .78rem; color: #7a5a12; background: #fff7e6; border: 1px solid #f0e2c4; border-radius: 7px; padding: 3px 8px; margin: 4px 0 2px; display: inline-block; }
+
 /* coverage banner */
 .cov-banner { grid-column: 1 / -1; background: var(--info-bg); border: 1px solid #cfe0f3; color: var(--ink); border-radius: 12px; padding: 12px 16px; font-size: .92rem; }
 .cov-banner .cov-sub { color: var(--muted); display: block; margin-top: 2px; font-size: .85rem; }
