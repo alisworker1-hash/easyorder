@@ -1,0 +1,828 @@
+{
+  "_note": "REAL TEST SCENARIO: Grant's yellow-zinc fastener order, researched across 15+ suppliers (web research 2026-07-03, public product pages; browser used where sites block fetching). Demonstrates the full status vocabulary: confirmed options enter engine math, everything else surfaces as labeled candidates. unitPrice = effective per-piece cost to cover the needed qty (pack minimums priced in). deliveryFee 0 on online sellers = shipping UNKNOWN, not free.",
+  "project": {
+    "id": "prj_hw",
+    "type": "project",
+    "name": "Yellow-Zinc Fastener Order",
+    "client": null,
+    "notes": "All hardware yellow zinc plated, 1/2-13 coarse thread. Smallest-OD washer that fits a 1/2 bolt: SAE pattern, 17/32in ID x 1-1/16in OD (no smaller yellow-zinc option exists in the channel).",
+    "neededBy": null
+  },
+  "shoppingList": {
+    "id": "list_hw",
+    "type": "shoppingList",
+    "name": "1/2-13 bolts, washers, nuts",
+    "projectId": "prj_hw"
+  },
+  "materials": [
+    {
+      "id": "hw-bolt-150",
+      "item": "Hex Bolt 1/2\"-13 x 1-1/2\"",
+      "qty": 8,
+      "unit": "each",
+      "size": "1/2-13 x 1-1/2 in",
+      "spec": "yellow zinc plated (Grade 8), coarse thread",
+      "category": "fasteners",
+      "fulfillment": "pickup",
+      "notes": "pairs with washer + nut below"
+    },
+    {
+      "id": "hw-bolt-400",
+      "item": "Hex Bolt 1/2\"-13 x 4\"",
+      "qty": 2,
+      "unit": "each",
+      "size": "1/2-13 x 4 in",
+      "spec": "yellow zinc plated (Grade 8), coarse thread",
+      "category": "fasteners",
+      "fulfillment": "pickup",
+      "notes": "pairs with washer only (no nut)"
+    },
+    {
+      "id": "hw-washer",
+      "item": "Flat Washer for 1/2\" Bolt, smallest OD",
+      "qty": 10,
+      "unit": "each",
+      "size": "SAE pattern: 17/32 in ID x 1-1/16 in OD",
+      "spec": "yellow zinc, Grade 8 / thru-hardened SAE",
+      "category": "fasteners",
+      "fulfillment": "pickup",
+      "notes": "Smallest OD that fits a 1/2 bolt. 8 for the 1-1/2 bolts, 2 for the 4in bolts."
+    },
+    {
+      "id": "hw-nut",
+      "item": "Hex Nut 1/2\"-13",
+      "qty": 8,
+      "unit": "each",
+      "size": "1/2-13",
+      "spec": "yellow zinc plated (Grade 8), coarse thread, finished hex",
+      "category": "fasteners",
+      "fulfillment": "pickup",
+      "notes": ""
+    }
+  ],
+  "suppliers": [
+    "home-depot",
+    "lowes",
+    "ace-hardware",
+    "autozone",
+    "oreilly",
+    "walmart",
+    "tractor-supply",
+    "amazon",
+    "grainger",
+    "fastenal",
+    "bolt-depot",
+    "albany-county",
+    "fastener-mart",
+    "fasteners-direct",
+    "fmw-fasteners",
+    "ababa-bolt"
+  ],
+  "sampleQuotes": [
+    {
+      "id": "quote_hd_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "home-depot",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "Everbilt, per-piece, pickup today (Escondido-area ref store).",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 3.97,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 3.97,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.51,
+          "available": true,
+          "leadDays": 0,
+          "status": "in_store_verification_needed",
+          "matchNote": "out of stock online in both pack sizes; store SKUs exist but only USS 1-3/8in OD carried (substitute for smallest-OD spec)"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 2.97,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed"
+        }
+      ]
+    },
+    {
+      "id": "quote_lowes_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "lowes",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "Hillman yellow dichromate G8, per-piece, pickup ~3 hrs.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 1.98,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "in stock 'nearby', not at reference store itself"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 3.48,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.3,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "plain zinc, 1-3/8in OD (yellow zinc washer line discontinued; wrong finish AND not smallest OD)"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 0.89,
+          "available": true,
+          "leadDays": 0,
+          "status": "partial_confirmed",
+          "matchNote": "yellow zinc, but grade not stated on page ($1.78/2-pk)",
+          "missingFields": [
+            "grade"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quote_ace_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "ace-hardware",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "Hillman heat-treated G8 yellow dichromate, exact matches incl. SAE small-OD washer. Online sells 25/50-count contractor boxes only; effective prices reflect whole boxes. In-store bins likely cheaper.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 7.87,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "50-pk $62.99 (42 spares)"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 30.5,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "25-pk $60.99 (23 spares)"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 3.0,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "50-pk $29.99, SAE pattern"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 4.87,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "50-pk $38.99"
+        }
+      ]
+    },
+    {
+      "id": "quote_autozone_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "autozone",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "440 W Felicita Ave, Escondido. Needa/Hillman blister packs. Buyer's candidate SKU 550829 evaluated and REJECTED.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 4.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "not_recommended",
+          "matchNote": "candidate Needa 003830 (SKU 550829) is actually 3/8-16 x 1-1/4 per catalog cross-ref + SKU sequence: wrong diameter, pitch, and length; AutoZone's real 1/2-13 x 1-1/2 (551745) is Grade 5 only and not stocked at Felicita Ave"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 5.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "availability_unconfirmed",
+          "matchNote": "Needa 550864 G8 seen at ~$5.99 but pack count unconfirmed (sibling sizes are 2-pc packs)",
+          "missingFields": [
+            "pack_quantity"
+          ]
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 2.5,
+          "available": true,
+          "leadDays": 0,
+          "status": "partial_confirmed",
+          "matchNote": "Needa 550801 G8 SAE 2-pk $4.99 (5 packs to cover 10); finish not stated, G8 typically yellow zinc",
+          "missingFields": [
+            "finish"
+          ]
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 4.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "availability_unconfirmed",
+          "matchNote": "Hillman/Needa 550779 G8 ~$4.99/pack, pack count unconfirmed",
+          "missingFields": [
+            "pack_quantity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quote_oreilly_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "oreilly",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "840 W Mission Ave, Escondido: ALL FOUR in stock, free pickup ready ~1 hr. Dorman Grade 8 yellow zinc blister packs.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 2.5,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Dorman 960-415D, 2-pk $4.99 x4 packs"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 4.99,
+          "available": true,
+          "leadDays": 0,
+          "status": "substitute_confirmed",
+          "matchNote": "no 4in exists in Dorman G8 line: 5in (960-450) substitute, 1in over-length; $4.99/blister, pack count unconfirmed (priced worst-case 1/pack)",
+          "missingFields": [
+            "pack_quantity"
+          ]
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 1.0,
+          "available": true,
+          "leadDays": 0,
+          "status": "partial_confirmed",
+          "matchNote": "Dorman 965-014D 8-pk $4.99 x2 (16 pcs); O'Reilly page lists finish only as zinc-plated and OD field is glitched; secondary sources say yellow zinc, 1-1/16in OD",
+          "missingFields": [
+            "finish",
+            "dimensions"
+          ]
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 1.25,
+          "available": true,
+          "leadDays": 0,
+          "status": "exact_confirmed",
+          "matchNote": "Dorman 962-014D 5-pk $4.99 x2 (10 pcs)"
+        }
+      ]
+    },
+    {
+      "id": "quote_walmart_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "walmart",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Marketplace sellers, ship-only, no local pickup for these items. Weak overall fit.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": null,
+          "status": "availability_unconfirmed",
+          "matchNote": "no exact 1-1/2in listing found; neighbors are 1in and 2-1/2in (wrong length)"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": null,
+          "status": "price_unconfirmed",
+          "matchNote": "Titan Industrial 20-pk exists but price hidden; prior '$20.90 4in' reference was actually a 7in bolt"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": null,
+          "available": false,
+          "leadDays": null,
+          "status": "not_recommended",
+          "matchNote": "only exact-spec listing is $189.99/100 and currently unavailable"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": null,
+          "status": "availability_unconfirmed",
+          "matchNote": "only jam (thin) nuts in 1,200-pc bulk found; no finished G8 hex nut listed"
+        }
+      ]
+    },
+    {
+      "id": "quote_tsc_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "tractor-supply",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "Hillman G8 yellow-zinc bin program covers all four per-piece IN STORE, but no prices online and nearest stores are ~20-26 mi (El Cajon / Temecula).",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "in_store_verification_needed",
+          "matchNote": "plain hex via in-store G8 bins; online shows flange-head 2-pks (substitute), price hidden",
+          "missingFields": [
+            "price",
+            "pickup_status"
+          ]
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "in_store_verification_needed",
+          "matchNote": "standard Hillman bin size but not indexed online",
+          "missingFields": [
+            "price",
+            "pickup_status"
+          ]
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "in_store_verification_needed",
+          "matchNote": "Hillman #45860 SAE hardened (correct small-OD pattern) is a bin item",
+          "missingFields": [
+            "price",
+            "pickup_status"
+          ]
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "in_store_verification_needed",
+          "matchNote": "finished G8 nuts in bins; online flange nut is a substitute",
+          "missingFields": [
+            "price",
+            "pickup_status"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quote_amazon_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "amazon",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "All items exist in exact yellow-zinc G8 (incl. SAE 1.062in OD washers, Hillman 4-pk bolts) but bot-blocking hid most prices.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 3,
+          "status": "price_unconfirmed",
+          "matchNote": "Makers Bolt 50-pk and Hillman 4-pk listings exist; price requires in-cart check"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 3,
+          "status": "price_unconfirmed",
+          "matchNote": "5-pk and Hillman 4-pk listings exist; price requires in-cart check"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 4.0,
+          "available": true,
+          "leadDays": 3,
+          "status": "availability_unconfirmed",
+          "matchNote": "100-pk $39.95 seen via marketplace seller; exact SAE spec with published dims"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 2.44,
+          "available": true,
+          "leadDays": 3,
+          "status": "availability_unconfirmed",
+          "matchNote": "Hillman 50-pk offers from $19.48; marketplace sellers vary"
+        }
+      ]
+    },
+    {
+      "id": "quote_grainger_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "grainger",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "All four exact_confirmed on public pages, pack quantities. Next-business-day ship; will-call at 8001 Raytheon Rd, San Diego (~25-30 mi, branch shelf stock unverified).",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 2.05,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "22TH31 25-pk $16.39 (17 spares)"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 5.62,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "23LA48 5-pk $11.23 (3 spares)"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.67,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "6PU20 25-pk $6.69; ID 0.531 x OD 1-1/16"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 1.13,
+          "available": true,
+          "leadDays": 1,
+          "status": "exact_confirmed",
+          "matchNote": "3HED8 50-pk $9.03 (42 spares)"
+        }
+      ]
+    },
+    {
+      "id": "quote_fastenal_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "fastenal",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Sells all four as SINGLE pieces online. BUT Escondido location (1309 Simpson Way) is now appointment-only fulfillment, NOT open for walk-in; shipping methods require login. Prices refresh earlier stale snippets.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 1.26,
+          "available": true,
+          "leadDays": 2,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 15209, each"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 2.91,
+          "available": true,
+          "leadDays": 2,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 15219, each"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.51,
+          "available": true,
+          "leadDays": 2,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 33817; ID 0.531 x OD 1.062"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 0.51,
+          "available": true,
+          "leadDays": 2,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 36410, each"
+        }
+      ]
+    },
+    {
+      "id": "quote_boltdepot_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "bolt-depot",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Sells singles with transparent per-piece pricing; all four exact incl. washer with published dim tolerances. Shipping/minimums not confirmed.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 0.91,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "product #642"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 2.31,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "product #650"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.25,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "product #3051; ID 17/32 (0.526-0.546), OD 1-1/16 (1.055-1.092)"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 0.24,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "product #2586"
+        }
+      ],
+      "shipping": {
+        "cost": 12.1,
+        "confidence": "confirmed",
+        "source": "cart estimator to 92029 (2026-07)",
+        "note": "USPS Economy 3-7 days; UPS Ground $19.14; pickup $0"
+      }
+    },
+    {
+      "id": "quote_albany_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "albany-county",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Cheapest confirmed parts basket ($15.76). Sells singles. Shipping not confirmed.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 0.79,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 1090-034-0062, full thread (standard is partial; effectively equivalent at 1-1/2in)"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 1.6,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "SKU 1090-034-0182, partial thread"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.36,
+          "available": true,
+          "leadDays": 3,
+          "status": "substitute_confirmed",
+          "matchNote": "dims exact (0.531 ID x 1.062 OD x 0.097) but hardness grade not stated on listing",
+          "missingFields": [
+            "grade"
+          ]
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 0.33,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "G8 yellow zinc finished hex, UNC"
+        }
+      ]
+    },
+    {
+      "id": "quote_fastenermart_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "fastener-mart",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Competitive per-piece but 25-100 pc package minimums force ~$94 of product for a ~$16 need.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 3.35,
+          "available": true,
+          "leadDays": 3,
+          "status": "not_recommended",
+          "matchNote": "min package 50 pcs ($26.80) for a need of 8"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 13.24,
+          "available": true,
+          "leadDays": 3,
+          "status": "not_recommended",
+          "matchNote": "min package 25 pcs ($26.48) for a need of 2"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 2.08,
+          "available": true,
+          "leadDays": 3,
+          "status": "not_recommended",
+          "matchNote": "min package 100 pcs ($20.77) for a need of 10"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 2.48,
+          "available": true,
+          "leadDays": 3,
+          "status": "not_recommended",
+          "matchNote": "min package 100 pcs ($19.80) for a need of 8"
+        }
+      ]
+    },
+    {
+      "id": "quote_fd_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "fasteners-direct",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Sells singles; cheapest confirmed washer anywhere ($0.1131/pc, exact SAE small-OD). Shipping terms not published.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 0.68,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "$0.6814/pc singles"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 1.68,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.11,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed",
+          "matchNote": "SAE G8, hole 17/32 x OD 1-1/16 x 0.121 thk"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 2.3,
+          "available": true,
+          "leadDays": 3,
+          "status": "partial_confirmed",
+          "matchNote": "only bag of 100 confirmed ($18.40); singles page 404s"
+        }
+      ]
+    },
+    {
+      "id": "quote_fmw_web",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "fmw-fasteners",
+      "deliveryFee": 0,
+      "fulfillment": "delivery",
+      "receivedAt": "2026-07-03",
+      "notes": "Exact yellow-zinc G8 across the board, true singles, ships 1-3 business days. Free shipping only $200+, actual shipping unknown.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": 1.65,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": 3.72,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": 0.24,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": 0.47,
+          "available": true,
+          "leadDays": 3,
+          "status": "exact_confirmed"
+        }
+      ],
+      "shipping": {
+        "cost": 10.0,
+        "confidence": "confirmed",
+        "source": "cart to 92029 (2026-07)",
+        "note": "Shop Pay computed $10.00 economical shipping; order under $200 free-ship threshold"
+      }
+    },
+    {
+      "id": "quote_ababa_local",
+      "type": "quote",
+      "rfqId": null,
+      "supplierId": "ababa-bolt",
+      "deliveryFee": 0,
+      "fulfillment": "pickup",
+      "receivedAt": "2026-07-03",
+      "notes": "Full-line bolt house ~5 min from 92029 (310 S Quince St). No online pricing: normal for bolt houses. Prime RFQ target: call (619) 440-1781 to confirm Escondido counter, G8 stock, and prices.",
+      "lineItems": [
+        {
+          "materialId": "hw-bolt-150",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "bolt house carries inch-size zinc bolts; quote by phone"
+        },
+        {
+          "materialId": "hw-bolt-400",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "quote by phone"
+        },
+        {
+          "materialId": "hw-washer",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "quote by phone; ask for SAE G8 yellow zinc"
+        },
+        {
+          "materialId": "hw-nut",
+          "unitPrice": null,
+          "available": true,
+          "leadDays": 0,
+          "status": "price_unconfirmed",
+          "matchNote": "quote by phone"
+        }
+      ]
+    }
+  ]
+}
