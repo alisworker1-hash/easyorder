@@ -1,0 +1,657 @@
+{
+  "_note": "DEMO DATA - illustrative suppliers for the EasyOrder Pro prototype. Not real contact info, not real pricing. Replaced later by official-integration adapters (see INTEGRATIONS.md). distanceMiles = approximate driving distance from Escondido 92029 (chain-store distances assume nearest branch).",
+  "suppliers": [
+    {
+      "id": "home-depot",
+      "type": "big-box",
+      "name": "The Home Depot",
+      "categories": [
+        "lumber",
+        "sheathing",
+        "fasteners",
+        "concrete",
+        "roofing",
+        "doors",
+        "windows",
+        "hardware"
+      ],
+      "email": "pro-quotes@homedepot.example",
+      "phone": "",
+      "location": "Regional",
+      "deliveryAvailable": true,
+      "leadTimeNote": "2-4 days",
+      "logo": "🟧",
+      "distanceMiles": 5
+    },
+    {
+      "id": "lowes",
+      "type": "big-box",
+      "name": "Lowe's",
+      "categories": [
+        "lumber",
+        "sheathing",
+        "fasteners",
+        "concrete",
+        "roofing",
+        "doors",
+        "windows",
+        "hardware"
+      ],
+      "email": "contractor-desk@lowes.example",
+      "phone": "",
+      "location": "Regional",
+      "deliveryAvailable": true,
+      "leadTimeNote": "2-4 days",
+      "logo": "🔵",
+      "distanceMiles": 5
+    },
+    {
+      "id": "floor-decor",
+      "type": "specialty",
+      "name": "Floor & Decor",
+      "categories": [
+        "flooring",
+        "tile"
+      ],
+      "email": "quotes@floordecor.example",
+      "phone": "",
+      "location": "Metro",
+      "deliveryAvailable": true,
+      "leadTimeNote": "3-6 days",
+      "logo": "🟫"
+    },
+    {
+      "id": "wayfair",
+      "type": "big-box",
+      "name": "Wayfair Professional",
+      "categories": [
+        "fixtures",
+        "furniture",
+        "doors",
+        "windows",
+        "hardware"
+      ],
+      "email": "pro@wayfair.example",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "4-8 days",
+      "logo": "🟣"
+    },
+    {
+      "id": "amazon",
+      "type": "big-box",
+      "name": "Amazon Business",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "fixtures",
+        "tools"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "1-3 days",
+      "logo": "🟨",
+      "shippingPolicy": {
+        "kind": "estimate",
+        "estimate": 0,
+        "source": "policy-page",
+        "note": "Prime-eligible listings ship free; marketplace sellers vary"
+      }
+    },
+    {
+      "id": "abc-lumber",
+      "type": "local",
+      "name": "ABC Lumber Yard",
+      "categories": [
+        "lumber",
+        "sheathing",
+        "roofing",
+        "concrete"
+      ],
+      "email": "sales@abclumber.example",
+      "phone": "",
+      "location": "Local",
+      "deliveryAvailable": true,
+      "leadTimeNote": "next day / pickup",
+      "logo": "🪵"
+    },
+    {
+      "id": "city-hardware",
+      "type": "local",
+      "name": "City Hardware & Supply",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "concrete",
+        "tools"
+      ],
+      "email": "orders@cityhardware.example",
+      "phone": "",
+      "location": "Local",
+      "deliveryAvailable": true,
+      "leadTimeNote": "same day pickup",
+      "logo": "🔧"
+    },
+    {
+      "id": "ace-hardware",
+      "type": "big-box",
+      "name": "Ace Hardware",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "tools"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Local + online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "pickup or ship; online sells contractor boxes only",
+      "logo": "🔴",
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "distanceMiles": 5
+    },
+    {
+      "id": "autozone",
+      "type": "big-box",
+      "name": "AutoZone",
+      "categories": [
+        "fasteners",
+        "hardware"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Local + online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "same-day pickup; small blister packs",
+      "logo": "🟥",
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "distanceMiles": 3
+    },
+    {
+      "id": "fasteners-direct",
+      "type": "specialty",
+      "name": "Fasteners Direct",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "sells singles; shipping terms not published on product pages",
+      "logo": "🔩",
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "shippingPolicy": {
+        "kind": "free_over",
+        "freeOverThreshold": 100,
+        "flatRate": null,
+        "minOrderValue": 100,
+        "source": "policy-page",
+        "note": "$100 order minimum; ships free over $100 (so any valid order ships free). Cart is B2B quote-based, no small-order rate."
+      }
+    },
+    {
+      "id": "fmw-fasteners",
+      "type": "specialty",
+      "name": "FMW Fasteners",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "ships 1-3 business days; free shipping at $200+",
+      "logo": "⚙️",
+      "_provenance": "real supplier, added from web research 2026-07-03; contact blank until confirmed",
+      "shippingPolicy": {
+        "kind": "free_over",
+        "freeOverThreshold": 200,
+        "flatRate": 10.0,
+        "minOrderValue": null,
+        "source": "confirmed",
+        "note": "$10.00 to 92029 confirmed via cart; free over $200"
+      }
+    },
+    {
+      "id": "bolt-depot",
+      "type": "specialty",
+      "name": "Bolt Depot",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "sells singles and bulk; prices not machine-readable, check site",
+      "logo": "🔩",
+      "_provenance": "real supplier, added from web research 2026-07-03; prices unconfirmed",
+      "shippingPolicy": {
+        "kind": "estimate",
+        "flatRate": null,
+        "freeOverThreshold": null,
+        "estimate": 12.1,
+        "minOrderValue": null,
+        "source": "confirmed",
+        "note": "USPS Economy $12.10 to 92029 (cart estimator); no minimum, no free threshold"
+      }
+    },
+    {
+      "id": "fastenal",
+      "type": "specialty",
+      "name": "Fastenal",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Branch + online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "online skews to wholesale package quantities",
+      "logo": "🏭",
+      "_provenance": "real supplier, added from web research 2026-07-03; prices unconfirmed"
+    },
+    {
+      "id": "oreilly",
+      "type": "big-box",
+      "name": "O'Reilly Auto Parts (Escondido)",
+      "categories": [
+        "fasteners",
+        "hardware"
+      ],
+      "email": "",
+      "phone": "(760) 746-6762",
+      "location": "840 W Mission Ave, Escondido (~3 mi)",
+      "deliveryAvailable": true,
+      "leadTimeNote": "free in-store pickup, ready in ~1 hr; Dorman G8 blister packs",
+      "logo": "🟩",
+      "_provenance": "real supplier, verified via web research 2026-07-03",
+      "distanceMiles": 3
+    },
+    {
+      "id": "walmart",
+      "type": "big-box",
+      "name": "Walmart",
+      "categories": [
+        "dairy",
+        "fasteners",
+        "grocery",
+        "hardware",
+        "meat",
+        "pantry",
+        "produce",
+        "tools"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Marketplace/online for fasteners",
+      "deliveryAvailable": true,
+      "leadTimeNote": "supercenter; groceries + general merchandise; pickup available",
+      "logo": "🟦",
+      "_provenance": "real supplier, web research 2026-07-03; weak fastener coverage",
+      "distanceMiles": 3
+    },
+    {
+      "id": "grainger",
+      "type": "specialty",
+      "name": "Grainger",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "tools"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Branch: 8001 Raytheon Rd, San Diego (~25-30 mi); ships next-day",
+      "deliveryAvailable": true,
+      "leadTimeNote": "pack quantities; visible web pricing; will-call M-F 7-4:30",
+      "logo": "🟥",
+      "_provenance": "real supplier, web research 2026-07-03; prices confirmed on public pages",
+      "distanceMiles": 28,
+      "shippingPolicy": {
+        "kind": "calculated",
+        "source": "policy-page",
+        "note": "next-business-day ship; cost shown at checkout or will-call pickup"
+      }
+    },
+    {
+      "id": "tractor-supply",
+      "type": "big-box",
+      "name": "Tractor Supply",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "tools"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Nearest ~20-26 mi (El Cajon / Temecula)",
+      "deliveryAvailable": true,
+      "leadTimeNote": "Hillman G8 yellow-zinc per-piece bins in-store; prices not online",
+      "logo": "🟫",
+      "_provenance": "real supplier, web research 2026-07-03; bin stock needs store verification",
+      "distanceMiles": 23
+    },
+    {
+      "id": "albany-county",
+      "type": "specialty",
+      "name": "Albany County Fasteners",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "sells singles; JS-rendered pricing",
+      "logo": "🔩",
+      "_provenance": "real supplier, web research 2026-07-03; prices confirmed via browser",
+      "shippingPolicy": {
+        "kind": "calculated",
+        "flatRate": null,
+        "freeOverThreshold": null,
+        "estimate": null,
+        "minOrderValue": null,
+        "source": "policy-page",
+        "note": "live USPS/UPS rates capped at $100; no free threshold, no minimum; cheapest = USPS Ground Advantage; exact rate needs checkout registration"
+      }
+    },
+    {
+      "id": "fastener-mart",
+      "type": "specialty",
+      "name": "Fastener Mart",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Online",
+      "deliveryAvailable": true,
+      "leadTimeNote": "25-100 pc package minimums; no singles",
+      "logo": "🔩",
+      "_provenance": "real supplier, web research 2026-07-03; package-only pricing"
+    },
+    {
+      "id": "ababa-bolt",
+      "type": "local",
+      "name": "Ababa Bolt (Escondido)",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "(619) 440-1781 (El Cajon HQ; confirm Escondido line)",
+      "location": "310 S Quince St, Escondido 92025 (~5 min)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "full-line bolt house; counter service, call ahead; quote by phone",
+      "logo": "🔩",
+      "_provenance": "verified local supplier, web research 2026-07-03; no online pricing (normal for bolt houses)",
+      "distanceMiles": 2.5
+    },
+    {
+      "id": "tko-fasteners",
+      "type": "local",
+      "name": "TKO Fasteners",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "(760) 908-5353",
+      "location": "2790 Loker Ave W Ste 114, Carlsbad (~12 mi)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "OEM/MRO distributor; confirm small retail orders",
+      "logo": "🔩",
+      "_provenance": "verified local supplier, web research 2026-07-03; quote by phone/email",
+      "distanceMiles": 12
+    },
+    {
+      "id": "marshalls-industrial",
+      "type": "local",
+      "name": "Marshall's Industrial Hardware",
+      "categories": [
+        "fasteners",
+        "hardware",
+        "tools"
+      ],
+      "email": "",
+      "phone": "(858) 271-5555",
+      "location": "8423 Production Ave, San Diego (Miramar, ~20 mi)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "openly retail, browseable shelves; M-Th 7-5, closed Fri-Sun",
+      "logo": "🔧",
+      "_provenance": "verified local supplier, web research 2026-07-03; no online pricing",
+      "distanceMiles": 20
+    },
+    {
+      "id": "mesa-fastener",
+      "type": "local",
+      "name": "Mesa Fastener",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "(858) 587-9592",
+      "location": "6496-B Marindustry Pl, San Diego (Sorrento Mesa, ~21 mi)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "will-call window M-F 7-5; RFQ form on site",
+      "logo": "🔩",
+      "_provenance": "verified local supplier, web research 2026-07-03; RFQ pricing",
+      "distanceMiles": 21
+    },
+    {
+      "id": "hayes-bolt",
+      "type": "local",
+      "name": "Hayes Bolt & Supply",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "(619) 231-5966",
+      "location": "2950 National Ave, San Diego (~30 mi)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "walk-in counter sales; 65,000+ line items; RFQ pricing",
+      "logo": "🔩",
+      "_provenance": "verified local supplier, web research 2026-07-03; RFQ pricing",
+      "distanceMiles": 30
+    },
+    {
+      "id": "united-fastener",
+      "type": "local",
+      "name": "United Fastener",
+      "categories": [
+        "fasteners"
+      ],
+      "email": "",
+      "phone": "(619) 232-5111",
+      "location": "2852 Market St, San Diego (~30 mi)",
+      "deliveryAvailable": false,
+      "leadTimeNote": "order counter M-F 7-4; known friendly for small walk-in orders",
+      "logo": "🔩",
+      "_provenance": "verified local supplier, web research 2026-07-03; no online pricing",
+      "distanceMiles": 30
+    },
+    {
+      "id": "target",
+      "type": "big-box",
+      "name": "Target",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 2,
+      "deliveryAvailable": true,
+      "leadTimeNote": "grocery + general merchandise; Drive Up pickup",
+      "logo": "🎯",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "ralphs",
+      "type": "specialty",
+      "name": "Ralphs (Kroger)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔵",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "vons",
+      "type": "specialty",
+      "name": "Vons (Albertsons)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔴",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "albertsons",
+      "type": "specialty",
+      "name": "Albertsons",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 4,
+      "deliveryAvailable": true,
+      "leadTimeNote": "full grocery; pickup available",
+      "logo": "🔷",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "sprouts",
+      "type": "specialty",
+      "name": "Sprouts Farmers Market",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 3,
+      "deliveryAvailable": true,
+      "leadTimeNote": "natural/organic focus; strong produce",
+      "logo": "🥬",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "trader-joes",
+      "type": "specialty",
+      "name": "Trader Joe's",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 4,
+      "deliveryAvailable": true,
+      "leadTimeNote": "private-label grocery; no online pricing published",
+      "logo": "🛍️",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "costco",
+      "type": "specialty",
+      "name": "Costco Wholesale",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 6,
+      "deliveryAvailable": true,
+      "leadTimeNote": "warehouse club; bulk packs; membership; in-warehouse pricing not public",
+      "logo": "🏬",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "whole-foods",
+      "type": "specialty",
+      "name": "Whole Foods Market (Amazon)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 8,
+      "deliveryAvailable": true,
+      "leadTimeNote": "natural/organic; some pricing via Amazon",
+      "logo": "🌿",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    },
+    {
+      "id": "frazier-farms",
+      "type": "local",
+      "name": "Frazier Farms Market (Escondido)",
+      "categories": [
+        "grocery",
+        "produce",
+        "dairy",
+        "meat",
+        "pantry"
+      ],
+      "email": "",
+      "phone": "",
+      "location": "Escondido / San Diego area",
+      "distanceMiles": 2,
+      "deliveryAvailable": true,
+      "leadTimeNote": "local natural-foods grocer; strong organic produce",
+      "logo": "🌾",
+      "_provenance": "grocery scenario supplier, web research 2026-07 / demo; prices per scenario quotes"
+    }
+  ]
+}
