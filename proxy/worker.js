@@ -27,6 +27,19 @@ const ALLOWED_ORIGINS = [
   "http://127.0.0.1:8042",
 ];
 
+// Per-isolate rate limit (same pattern as shipyard templates/code/worker-api):
+// honest about the free tier — the Map resets on isolate swap, so this stops
+// casual drain, not a determined attacker. Pair with a Cloudflare WAF/Rate
+// Limiting rule on the worker route for real pressure.
+const hits = new Map();
+function limited(ip, max = 20, windowMs = 60_000) {
+  const now = Date.now();
+  const rec = hits.get(ip) ?? { n: 0, t: now };
+  if (now - rec.t > windowMs) { rec.n = 0; rec.t = now; }
+  rec.n++; hits.set(ip, rec);
+  return rec.n > max;
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -40,6 +53,14 @@ export default {
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (request.method !== "POST") return j({ error: "POST only" }, 405, cors);
+
+    // Enforce the allow-list, don't just echo it: without this, any HTTP client
+    // (or any other website) can relay through the worker and drain the prepaid
+    // key. Origin is spoofable by non-browser clients, hence the rate limit too.
+    if (!ALLOWED_ORIGINS.includes(origin)) return j({ error: "forbidden" }, 403, cors);
+
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    if (limited(ip)) return j({ error: "too many requests — try again in a minute" }, 429, cors);
 
     const KEY = env.LLM_API_KEY || env.FIREWORKS_API_KEY;
     if (!KEY) return j({ error: "server not configured: set the LLM_API_KEY secret" }, 500, cors);
