@@ -21,16 +21,24 @@ const LS = {
     try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
     catch { return fallback; }
   },
-  set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} },
+  set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch { return false; } },
 };
 
 /* ---------------- state ---------------- */
 let DATA = { meta: {}, categories: [], products: [] };
 let PRODUCTS = {};            // id -> product
 let cart = LS.get("eo.cart", {});        // id -> qty
-let history = LS.get("eo.history", null); // id -> lastBoughtISO
+let history = LS.get("eo.history", null); // id -> lastBoughtISO (incl. demo SEED — not "real")
 let budget = LS.get("eo.budget", null);   // monthly budget number
 let dismissed = LS.get("eo.dismissed", []); // proactive card keys
+const asArray = (v) => (Array.isArray(v) ? v : []);   // tolerate corrupted/tampered JSON
+let prefs = asArray(LS.get("eo.prefs", []));       // remembered shopping preferences (user-stated only)
+let orders = asArray(LS.get("eo.orders", []));     // REAL placed orders: {orderNo,dateISO,subtotal,total,items}
+
+// The first-visit history (seedHistoryIfNeeded) is believable DEMO filler, not real purchases.
+// Anything that claims "you bought this" or "your usual spend" must use eo.orders, never the seed.
+const SEED_IDS = new Set(["milk-2pct-gal", "bread-whole-wheat", "eggs-large-dozen",
+  "toilet-paper-12", "dish-soap", "toothpaste-2pk"]);
 let activeCat = "all";
 let searchQuery = "";
 let lastFocus = null;         // restore focus after closing dialogs
@@ -291,6 +299,17 @@ function budgetCard() {
   const spent = subtotal();
   const pct = b > 0 ? Math.min(100, Math.round((spent / b) * 100)) : 0;
   const over = b > 0 && spent > b;
+  // Budget Coach: calm, honest context from the shopper's OWN real past orders (never the seed).
+  const base = spendBaseline();
+  let coach = "";
+  if (base != null && spent > 0) {
+    const diff = Math.round(((spent - base) / base) * 100);
+    coach = Math.abs(diff) <= 10
+      ? `<p class="budget-coach">This is about your usual — your last ${orders.length} orders averaged ${money(base)}.</p>`
+      : diff > 10
+        ? `<p class="budget-coach">Just so you know: this is about ${diff}% more than your recent orders (avg ${money(base)}). No rush.</p>`
+        : `<p class="budget-coach">This is about ${Math.abs(diff)}% less than your recent orders (avg ${money(base)}).</p>`;
+  }
   return `
   <div class="pcard budget ${over ? "over" : ""}">
     <div class="pcard-top">
@@ -302,6 +321,7 @@ function budgetCard() {
     </div>
     <div class="budget-line"><span>This order: <b>${money(spent)}</b></span><span>Budget: ${money(b)}</span></div>
     ${over ? `<p>This order is ${money(spent - b)} over your monthly budget. Want to remove anything?</p>` : ""}
+    ${coach}
   </div>`;
 }
 
@@ -439,9 +459,24 @@ function demoCheckout(items) {
   items.forEach((p) => { history[p.id] = today; });
   LS.set("eo.history", history);
 
+  // Record the REAL order (kept apart from the demo seed) — the honest source for the
+  // purchases/warranty locker and the budget baseline. Warranty/consumable only where curated.
+  orders.push({
+    orderNo, dateISO: today, total: Number(total.toFixed(2)),
+    subtotal: Number(subtotal().toFixed(2)),   // budget baseline compares like-for-like (no delivery fee)
+    items: items.map((p) => ({
+      id: p.id, name: p.name, price: p.price, qty: p.qty,
+      warrantyYears: (p.attrs && p.attrs.warrantyYears) || null,
+      consumable: (p.attrs && p.attrs.consumable) || null,
+    })),
+  });
+  const savedOrders = LS.set("eo.orders", orders);
+
   const lines = items.map((p) =>
     `<div class="receipt-row"><span>${esc(p.name)} × ${p.qty}</span><span>${money(p.price * p.qty)}</span></div>`).join("");
   const fee = deliveryFee();
+  // Honest about persistence: if this device can't save (private mode / full), don't pretend it's in the locker.
+  const saveNote = savedOrders ? "" : `<p class="muted" style="font-size:.85rem">I couldn't save this to “My orders” on this device.</p>`;
 
   openModal(`
     <div class="confirm-icon" aria-hidden="true">✅</div>
@@ -453,6 +488,7 @@ function demoCheckout(items) {
       <div class="receipt-row total"><span>Total</span><span>${money(total)}</span></div>
     </div>
     <p class="order-no">Order number: <b>${orderNo}</b></p>
+    ${saveNote}
     <button class="btn btn-primary btn-block" data-close-modal style="margin-top:1rem">Done</button>
   `);
   announce(`Order ${orderNo} placed. Total ${money(total)}.`);
@@ -510,14 +546,115 @@ function closeModal() {
 }
 
 /* ---------------- budget editor ---------------- */
+/* Accessible budget editor — a calm modal instead of a jarring native prompt. */
 function editBudget() {
   const current = budget || DATA.meta.monthlyBudgetDefault || 0;
-  const val = window.prompt("Set your monthly budget (in dollars):", String(current));
-  if (val == null) return;
-  const n = Math.max(0, Math.round(parseFloat(val) || 0));
-  budget = n; LS.set("eo.budget", n);
-  renderProactive(); renderCart();
-  announce(`Monthly budget set to ${money(n)}.`);
+  openModal(`
+    <h2 id="modalTitle"><span aria-hidden="true">🎯</span> Your monthly budget</h2>
+    <p class="confirm-sub">About how much would you like to spend on essentials each month?</p>
+    <div class="budget-edit">
+      <span class="budget-edit-dollar" aria-hidden="true">$</span>
+      <label for="budgetInput" class="sr-only">Monthly budget in dollars</label>
+      <input type="number" id="budgetInput" class="pref-input budget-input" value="${current}" min="0" step="10" inputmode="numeric" aria-label="Monthly budget in dollars" />
+    </div>
+    <button class="btn btn-primary btn-block" id="saveBudget" style="margin:.4rem 0 .6rem">Save budget</button>
+    <button class="btn btn-ghost btn-block" data-close-modal>Cancel</button>
+  `);
+  setTimeout(() => { const i = $("#budgetInput"); if (i) { i.focus(); i.select(); } }, 0);
+  const save = () => {
+    const n = Math.max(0, Math.round(parseFloat($("#budgetInput").value) || 0));
+    budget = n; LS.set("eo.budget", n);
+    closeModal(); renderProactive(); renderCart();
+    announce(`Monthly budget set to ${money(n)}.`);
+  };
+  $("#saveBudget").addEventListener("click", save);
+  $("#budgetInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); save(); } });
+}
+
+/* ---------------- remembered preferences (Personal Memory) ----------------
+   Stores ONLY preferences the shopper explicitly stated. Applied as real filters
+   against the real catalog (brand); a material/allergy note is surfaced as a
+   caution, never a verified-safe guarantee. Always viewable, editable, clearable. */
+function savePref(pref) {
+  if (!pref || !pref.value) return;
+  const dup = prefs.some((p) => p.kind === pref.kind && String(p.value).toLowerCase() === String(pref.value).toLowerCase());
+  if (!dup) { prefs.push(pref); LS.set("eo.prefs", prefs); renderProactive(); announce(`Saved — I'll remember: ${pref.value}.`); }
+}
+function removePref(i) {
+  const gone = prefs[i];
+  prefs.splice(i, 1); LS.set("eo.prefs", prefs); renderProactive(); renderPrefs();
+  announce(gone ? `Forgotten: ${gone.value}.` : "Forgotten.");
+}
+window.getPrefs = () => prefs.slice();           // read-only handle for the assistant's engine
+window.savePref = savePref;                       // so the assistant can remember on the user's say-so
+window.hasRealOrders = () => orders.length > 0;   // true only after a REAL checkout (never the demo seed)
+
+function renderPrefs() {
+  const rows = prefs.length
+    ? prefs.map((p, i) => `<div class="pref-row"><span>${p.kind === "avoid_brand" ? "🚫 Avoid " + esc(p.value) : "📝 " + esc(p.value)}</span>
+        <button class="btn btn-ghost btn-small" data-pref-remove="${i}" aria-label="Forget this preference">Forget</button></div>`).join("")
+    : `<p class="muted">Nothing remembered yet. Tell the helper things like “I don't like HP”, or add one below.</p>`;
+  openModal(`
+    <h2 id="modalTitle"><span aria-hidden="true">🧠</span> Things I remember about you</h2>
+    <p class="confirm-sub">I use these whenever I recommend — and you can change them any time.</p>
+    <div class="pref-list">${rows}</div>
+    <div class="pref-add">
+      <input id="prefInput" class="pref-input" placeholder='e.g. “avoid HP” or “I prefer steel”' aria-label="Add a preference" />
+      <button class="btn btn-primary" data-pref-add>Remember</button>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin:.6rem 0 0">Kept on this device, and shared with the helper so it can use them.</p>
+    <button class="btn btn-ghost btn-block" data-close-modal style="margin-top:.8rem">Done</button>
+  `);
+  // Land focus on the (safe) input, not openModal's default first button — which is a destructive "Forget".
+  setTimeout(() => { const i = $("#prefInput"); if (i) i.focus(); }, 0);
+}
+function addPrefFromInput() {
+  const elx = $("#prefInput"); if (!elx) return;
+  const raw = elx.value.trim(); if (!raw) return;
+  const m = raw.match(/^(?:avoid|no|not|hate|dislike|don'?t\s+(?:like|want))\s+(.+)/i);
+  if (m) {
+    // strip trailing politeness/filler so the brand actually matches the catalog ("no HP please" -> "HP")
+    const brand = m[1].trim().replace(/[.!,]+$/, "").replace(/\s+(please|thanks|thank\s+you|them|it|stuff|brand|products?)$/i, "").trim();
+    savePref({ kind: "avoid_brand", value: brand || m[1].trim(), raw });
+  } else savePref({ kind: "note", value: raw, raw });
+  renderPrefs();
+}
+
+/* ---------------- purchases & warranties locker ----------------
+   Lists ONLY real placed orders (eo.orders, never the demo seed). Shows the maker's
+   STATED warranty term and a computed expiry — never implies a claim was filed. */
+function addYears(iso, yrs) { const d = new Date(iso + "T00:00:00"); d.setFullYear(d.getFullYear() + yrs); return d.toISOString().slice(0, 10); }
+function prettyDate(iso) { try { return new Date(iso + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch { return iso; } }
+
+function renderOrders() {
+  if (!orders.length) {
+    openModal(`<h2 id="modalTitle"><span aria-hidden="true">🗂️</span> Your purchases</h2>
+      <p class="confirm-sub">Once you place an order it appears here with its warranty and refill info — so you never lose the paperwork.</p>
+      <button class="btn btn-primary btn-block" data-close-modal>Done</button>`);
+    return;
+  }
+  const blocks = [...orders].reverse().map((o) => {
+    const items = o.items.map((it) => {
+      const warranty = it.warrantyYears
+        ? `<div class="ord-meta">🛡️ ${it.warrantyYears}-year warranty (maker's stated term) — roughly until <b>${prettyDate(addYears(o.dateISO, it.warrantyYears))}</b>. Confirm exact terms with the maker.</div>` : "";
+      const refill = it.consumable ? `<div class="ord-meta">🔄 Refills: ${esc(it.consumable)}</div>` : "";
+      return `<div class="ord-item"><div class="ord-item-top"><span>${esc(it.name)}${it.qty > 1 ? " × " + it.qty : ""}</span><span>${money(it.price * it.qty)}</span></div>${warranty}${refill}</div>`;
+    }).join("");
+    return `<div class="ord"><div class="ord-head"><span>${prettyDate(o.dateISO)}</span><span class="muted">${esc(o.orderNo)} · ${money(o.total)}</span></div>${items}</div>`;
+  }).join("");
+  openModal(`<h2 id="modalTitle"><span aria-hidden="true">🗂️</span> Your purchases &amp; warranties</h2>
+    <p class="confirm-sub">Saved on this device. Warranty dates are the maker's stated term — I haven't registered anything for you.</p>
+    <div class="ord-list">${blocks}</div>
+    <button class="btn btn-ghost btn-block" data-close-modal style="margin-top:.8rem">Done</button>`);
+}
+
+/* Honest spend baseline: the average of REAL placed-order totals (never the demo seed).
+   Returns null until there are enough real orders to mean anything. */
+function spendBaseline(minOrders = 3) {
+  if (orders.length < minOrders) return null;
+  // compare on the SAME basis as the budget meter (subtotal, no delivery fee); fall back for old records
+  const totals = orders.map((o) => (o.subtotal != null ? o.subtotal : o.total));
+  return totals.reduce((a, b) => a + b, 0) / totals.length;
 }
 
 /* ---------------- global events (delegation) ---------------- */
@@ -559,6 +696,12 @@ document.addEventListener("click", (e) => {
   // budget
   if (t.closest("[data-budget-edit]")) { editBudget(); return; }
 
+  // personal memory (preferences) + purchases & warranties locker
+  if (t.closest("#prefsOpen")) { renderPrefs(); return; }
+  if (t.closest("#ordersOpen")) { renderOrders(); return; }
+  const pr = t.closest("[data-pref-remove]"); if (pr) { removePref(Number(pr.dataset.prefRemove)); return; }
+  if (t.closest("[data-pref-add]")) { addPrefFromInput(); return; }
+
   // browse overlay
   if (t.closest("#browseOpen")) { openBrowse(); return; }
   if (t.closest("#browseClose") || t.id === "browseBackdrop") { closeBrowse(); return; }
@@ -575,6 +718,7 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target && e.target.id === "prefInput") { e.preventDefault(); addPrefFromInput(); return; }
   const bv = $("#browseView"); // may be absent in the storefront layout
   if (e.key === "Escape") {
     if (!$("#modal").hidden) return closeModal();

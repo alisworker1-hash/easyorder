@@ -115,3 +115,6 @@ Each proactive card has a clear action (Add / Dismiss / Adjust budget). Dismisse
 Warm, trustworthy, calm. Suggested palette (use CSS vars): primary green `#0f9d76` (matches the EasyOrder/dupecheck family),
 ink `#1d2433`, soft bg `#f6f8f7`, card `#ffffff`, amber `#c97a16`, danger `#c0392b`. Rounded corners ~14px, soft shadows.
 Apple Pay button pure black `#000`. Keep it friendly, not clinical.
+---
+## Retro-gate record (2026-07-11, shipyard O2)
+Payer: NONE — deliberate free portfolio demo (elder-friendly UI + live catalog-grounded AI worker are what it markets). Recorded per SHIP §0.

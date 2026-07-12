@@ -27,6 +27,19 @@ const ALLOWED_ORIGINS = [
   "http://127.0.0.1:8042",
 ];
 
+// Per-isolate rate limit (same pattern as shipyard templates/code/worker-api):
+// honest about the free tier — the Map resets on isolate swap, so this stops
+// casual drain, not a determined attacker. Pair with a Cloudflare WAF/Rate
+// Limiting rule on the worker route for real pressure.
+const hits = new Map();
+function limited(ip, max = 20, windowMs = 60_000) {
+  const now = Date.now();
+  const rec = hits.get(ip) ?? { n: 0, t: now };
+  if (now - rec.t > windowMs) { rec.n = 0; rec.t = now; }
+  rec.n++; hits.set(ip, rec);
+  return rec.n > max;
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -41,6 +54,14 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (request.method !== "POST") return j({ error: "POST only" }, 405, cors);
 
+    // Enforce the allow-list, don't just echo it: without this, any HTTP client
+    // (or any other website) can relay through the worker and drain the prepaid
+    // key. Origin is spoofable by non-browser clients, hence the rate limit too.
+    if (!ALLOWED_ORIGINS.includes(origin)) return j({ error: "forbidden" }, 403, cors);
+
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    if (limited(ip)) return j({ error: "too many requests — try again in a minute" }, 429, cors);
+
     const KEY = env.LLM_API_KEY || env.FIREWORKS_API_KEY;
     if (!KEY) return j({ error: "server not configured: set the LLM_API_KEY secret" }, 500, cors);
 
@@ -48,9 +69,19 @@ export default {
     try { body = await request.json(); } catch { return j({ error: "invalid JSON" }, 400, cors); }
     if (!Array.isArray(body.messages)) return j({ error: "messages[] required" }, 400, cors);
 
+    // Always keep the system prompt (the catalog grounding) and cap only the recent history,
+    // so a long chat can never slice the catalog away or re-send a huge transcript.
+    const _m = body.messages;
+    const _sys = _m[0] && _m[0].role === "system" ? [_m[0]] : [];
+    const _rest = _m.slice(_sys.length);
+    let _cut = Math.max(0, _rest.length - 16);
+    while (_cut < _rest.length && _rest[_cut].role !== "user") _cut++;   // begin on a clean user turn
+    const _trimmed = [..._sys, ..._rest.slice(_cut)];
+    // belt-and-suspenders: never lead with an orphaned tool result (some endpoints 400 on it)
+    while (_trimmed.length > _sys.length && _trimmed[_sys.length].role === "tool") _trimmed.splice(_sys.length, 1);
     const payload = {
       model: env.LLM_MODEL || body.model || DEFAULT_MODEL,
-      messages: body.messages.slice(-24),
+      messages: _trimmed,
       max_tokens: Math.min(Number(body.max_tokens) || 700, 1024),
       temperature: Math.min(Math.max(Number(body.temperature ?? 0.3), 0), 1),
     };
