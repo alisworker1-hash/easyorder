@@ -449,6 +449,17 @@
     renderSuggestions();
   }
 
+  /* liveTurn() throws new Error("assistant service "+status) for any non-ok
+     HTTP response (worker returns distinct 403/429/5xx); a real connectivity
+     failure never reaches that check — fetch() itself rejects first, with no
+     status in the message. Elder-friendly, distinct per class; never dev-toned. */
+  function assistantErrorMessage(err) {
+    const m = String((err && err.message) || "").match(/assistant service (\d+)/);
+    if (!m) return "Can't reach the assistant — check your internet.";
+    if (m[1] === "429") return "The assistant is busy — wait a minute and try again.";
+    return "The assistant is having trouble — your cart is safe, try again shortly.";
+  }
+
   async function send(text) {
     text = (text || "").trim();
     if (!text || A.busy) return;
@@ -472,7 +483,7 @@
       typing(false); botMsg(reply.text, reply.ids, reply.decision);
     } catch (err) {
       typing(false);
-      botMsg("Sorry — I couldn't reach the assistant just now. " + (live() ? "Check the proxy is deployed (see AI.md)." : ""), []);
+      botMsg(assistantErrorMessage(err), []);
     } finally { A.busy = false; }
   }
 
