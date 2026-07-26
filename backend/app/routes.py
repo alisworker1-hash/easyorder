@@ -77,6 +77,20 @@ async def get_orders(uid: str = Depends(get_current_user), db: AsyncSession = De
 
 @router.post("/orders")
 async def post_order(body: schemas.OrderIn, uid: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    # SECURITY: every figure below is CLIENT-DECLARED. subtotal, total and each
+    # item's id/name/price arrive in the request body and are stored verbatim, so
+    # a caller can post an order claiming any price for any product_id — including
+    # ids that exist in no catalog. checkout.py already states the rule for the
+    # charging path ("never trust client-sent prices for what you actually
+    # charge"); it applies here too, and this endpoint is the one that has no
+    # guard yet.
+    # Harmless while nothing is deployed and nothing charges (the live site runs
+    # demoCheckout; see README's "don't deploy this until a real Stage-1 trigger
+    # fires"). It stops being harmless the moment these rows are treated as
+    # authoritative for fulfilment, invoicing or reporting.
+    # TODO before deploying: look each i.id up in the trusted catalog, recompute
+    # price/subtotal/total server-side, and reject the request on mismatch rather
+    # than silently persisting the client's numbers.
     o = models.Order(
         user_id=uid, order_no=body.orderNo, date=body.dateISO,
         subtotal=body.subtotal, total=body.total, status="placed",
