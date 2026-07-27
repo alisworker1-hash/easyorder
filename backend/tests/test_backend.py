@@ -68,14 +68,14 @@ class FakeDB:
         if "FROM preference" in sql:
             user_id = stmt._where_criteria[0].right.value
             return FakeResult([p for p in self.preferences if p.user_id == user_id])
+        if "FROM order_item" in sql:
+            order_id = stmt._where_criteria[0].right.value
+            return FakeResult(self.order_items.get(order_id, []))
         if "FROM \"order\"" in sql or "FROM order" in sql:
             user_id = stmt._where_criteria[0].right.value
             rows = [o for o in self.orders if o.user_id == user_id]
             rows.sort(key=lambda o: o.id, reverse=True)
             return FakeResult(rows)
-        if "FROM order_item" in sql:
-            order_id = stmt._where_criteria[0].right.value
-            return FakeResult(self.order_items.get(order_id, []))
         raise AssertionError(f"Unexpected SQL: {sql}")
 
     def add(self, obj):
@@ -417,7 +417,7 @@ async def test_get_current_user_invalid_token(monkeypatch):
     async def fetch_jwks():
         return {"keys": [{"kid": "kid-1"}]}
 
-    async def decode(*args, **kwargs):
+    def decode(*args, **kwargs):
         raise auth.JWTError()
 
     monkeypatch.setattr(auth, "_fetch_jwks", fetch_jwks)
@@ -441,7 +441,7 @@ async def test_get_current_user_missing_sub(monkeypatch):
     async def fetch_jwks():
         return {"keys": [{"kid": "kid-1"}]}
 
-    async def decode(*args, **kwargs):
+    def decode(*args, **kwargs):
         return {}
 
     monkeypatch.setattr(auth, "_fetch_jwks", fetch_jwks)
