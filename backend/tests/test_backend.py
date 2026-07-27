@@ -216,6 +216,7 @@ def test_orders_get_and_post(client_and_db):
         status="paid",
     )
     db.orders = [first, second]
+    db._order_id = 3  # seeded orders bypass add(), which is what normally advances this
     db.order_items = {
         1: [
             OrderItem(
