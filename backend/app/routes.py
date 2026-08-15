@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import models, schemas
+from . import catalog, models, schemas
 from .auth import get_current_user
 from .db import get_db
 
@@ -77,28 +77,44 @@ async def get_orders(uid: str = Depends(get_current_user), db: AsyncSession = De
 
 @router.post("/orders")
 async def post_order(body: schemas.OrderIn, uid: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    # SECURITY: every figure below is CLIENT-DECLARED. subtotal, total and each
-    # item's id/name/price arrive in the request body and are stored verbatim, so
-    # a caller can post an order claiming any price for any product_id — including
-    # ids that exist in no catalog. checkout.py already states the rule for the
-    # charging path ("never trust client-sent prices for what you actually
-    # charge"); it applies here too, and this endpoint is the one that has no
-    # guard yet.
-    # Harmless while nothing is deployed and nothing charges (the live site runs
-    # demoCheckout; see README's "don't deploy this until a real Stage-1 trigger
-    # fires"). It stops being harmless the moment these rows are treated as
-    # authoritative for fulfilment, invoicing or reporting.
-    # TODO before deploying: look each i.id up in the trusted catalog, recompute
-    # price/subtotal/total server-side, and reject the request on mismatch rather
-    # than silently persisting the client's numbers.
+    # Trust boundary (REVIEW-2026-08-15 #8): the client's figures are a CLAIM,
+    # verified against the trusted catalog; the persisted row is entirely
+    # server-computed. A mismatch is a 422 naming the field — never a silent
+    # correction, because the UI showing one price while the server records
+    # another is a bug somebody needs to see. Names are persisted from the
+    # catalog (cosmetic client drift tolerated); warranty/consumable are
+    # descriptive pass-through, not money.
+    if not body.items:
+        raise HTTPException(422, "order has no items")
+    subtotal_c = 0
+    server_items = []
+    for i in body.items:
+        p = catalog.get_product(i.id)
+        if p is None:
+            raise HTTPException(422, f"unknown product id: {i.id}")
+        if not 1 <= i.qty <= 999:
+            raise HTTPException(422, f"bad quantity for {i.id}: {i.qty}")
+        price_c = catalog.cents(p["price"])
+        if catalog.cents(i.price) != price_c:
+            raise HTTPException(
+                422, f"price mismatch for {i.id}: client {i.price} vs catalog {p['price']}")
+        subtotal_c += price_c * i.qty
+        server_items.append(models.OrderItem(
+            product_id=p["id"], name=p["name"], price=p["price"], qty=i.qty,
+            warranty_years=i.warrantyYears, consumable=i.consumable,
+        ))
+    total_c = subtotal_c + catalog.delivery_fee_cents(subtotal_c)
+    if catalog.cents(body.subtotal) != subtotal_c:
+        raise HTTPException(
+            422, f"subtotal mismatch: client {body.subtotal} vs computed {subtotal_c / 100:.2f}")
+    if catalog.cents(body.total) != total_c:
+        raise HTTPException(
+            422, f"total mismatch: client {body.total} vs computed {total_c / 100:.2f}")
     o = models.Order(
         user_id=uid, order_no=body.orderNo, date=body.dateISO,
-        subtotal=body.subtotal, total=body.total, status="placed",
+        subtotal=subtotal_c / 100, total=total_c / 100, status="placed",
     )
-    o.items = [models.OrderItem(
-        product_id=i.id, name=i.name, price=i.price, qty=i.qty,
-        warranty_years=i.warrantyYears, consumable=i.consumable,
-    ) for i in body.items]
+    o.items = server_items
     db.add(o)
     await db.commit()
     return {"id": o.id}
