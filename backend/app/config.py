@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
 
+    # Trusted catalog (repo-root data.json unless overridden; relative paths
+    # resolve against the repo root — see catalog.py)
+    catalog_path: str = "data.json"
+
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]

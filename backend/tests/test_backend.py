@@ -3,6 +3,9 @@ import sys
 from pathlib import Path
 
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://localhost/easyorder")
+# The suite runs in dev-bypass posture (auth is dependency-overridden per test);
+# startup fail-closed behavior is tested directly via validate_runtime_config.
+os.environ.setdefault("DEV_AUTH_BYPASS", "1")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from datetime import datetime
@@ -13,7 +16,8 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app import auth
-from app.main import app
+from app.config import Settings
+from app.main import app, validate_runtime_config
 from app.routes import get_current_user as routes_get_current_user
 from app.db import get_db
 from app.models import Cart, Order, OrderItem, Preference, User
@@ -263,21 +267,24 @@ def test_orders_get_and_post(client_and_db):
         },
     ]
 
+    # Post with catalog-true figures: 10 × 2% Milk @ 3.79 = 37.90, over the
+    # $35 free-delivery bar, so total == subtotal. The client-sent NAME is
+    # junk on purpose — the server must persist the catalog's name.
     response = client.post(
         "/orders",
         json={
             "orderNo": "ORD-3",
             "dateISO": "2026-07-26",
-            "subtotal": 30,
-            "total": 33,
+            "subtotal": 37.90,
+            "total": 37.90,
             "items": [
                 {
-                    "id": "sku-2",
-                    "name": "Gadget",
-                    "price": 30,
-                    "qty": 1,
+                    "id": "milk-2pct-gal",
+                    "name": "Totally Fake Name",
+                    "price": 3.79,
+                    "qty": 10,
                     "warrantyYears": None,
-                    "consumable": "no",
+                    "consumable": "yes",
                 }
             ],
         },
@@ -285,7 +292,96 @@ def test_orders_get_and_post(client_and_db):
     assert response.status_code == 200
     assert response.json() == {"id": 3}
     assert db.orders[-1].status == "placed"
-    assert db.order_items[3][0].name == "Gadget"
+    assert float(db.orders[-1].subtotal) == 37.90
+    assert float(db.orders[-1].total) == 37.90
+    assert db.order_items[3][0].name == "2% Milk"  # catalog name, not the claim
+
+
+def test_orders_post_applies_delivery_fee_under_threshold(client_and_db):
+    client, db = client_and_db
+    # 1 × 3.79 is under the $35 bar: server expects total = 3.79 + 4.99.
+    response = client.post(
+        "/orders",
+        json={
+            "orderNo": "ORD-FEE",
+            "dateISO": "2026-07-26",
+            "subtotal": 3.79,
+            "total": 8.78,
+            "items": [{"id": "milk-2pct-gal", "name": "2% Milk", "price": 3.79, "qty": 1}],
+        },
+    )
+    assert response.status_code == 200
+    assert float(db.orders[-1].total) == 8.78
+
+
+def test_orders_post_rejects_unknown_product(client_and_db):
+    client, db = client_and_db
+    response = client.post(
+        "/orders",
+        json={
+            "orderNo": "ORD-X",
+            "dateISO": "2026-07-26",
+            "subtotal": 30,
+            "total": 33,
+            "items": [{"id": "sku-2", "name": "Gadget", "price": 30, "qty": 1}],
+        },
+    )
+    assert response.status_code == 422
+    assert "unknown product id" in response.json()["detail"]
+    assert db.orders == []
+
+
+def test_orders_post_rejects_tampered_price(client_and_db):
+    client, db = client_and_db
+    response = client.post(
+        "/orders",
+        json={
+            "orderNo": "ORD-X",
+            "dateISO": "2026-07-26",
+            "subtotal": 0.01,
+            "total": 5.00,
+            "items": [{"id": "milk-2pct-gal", "name": "2% Milk", "price": 0.01, "qty": 1}],
+        },
+    )
+    assert response.status_code == 422
+    assert "price mismatch" in response.json()["detail"]
+    assert db.orders == []
+
+
+def test_orders_post_rejects_tampered_total(client_and_db):
+    client, db = client_and_db
+    # Correct per-item price but the fee is omitted from the claimed total.
+    response = client.post(
+        "/orders",
+        json={
+            "orderNo": "ORD-X",
+            "dateISO": "2026-07-26",
+            "subtotal": 3.79,
+            "total": 3.79,
+            "items": [{"id": "milk-2pct-gal", "name": "2% Milk", "price": 3.79, "qty": 1}],
+        },
+    )
+    assert response.status_code == 422
+    assert "total mismatch" in response.json()["detail"]
+    assert db.orders == []
+
+
+def test_startup_fails_closed_without_auth_config():
+    incomplete = Settings(_env_file=None, dev_auth_bypass=False,
+                          auth_issuer="", auth_audience="", auth_jwks_url="")
+    with pytest.raises(RuntimeError) as exc:
+        validate_runtime_config(incomplete)
+    for field in ("auth_issuer", "auth_audience", "auth_jwks_url"):
+        assert field in str(exc.value)
+
+
+def test_startup_allows_full_auth_config_and_dev_bypass():
+    configured = Settings(_env_file=None, dev_auth_bypass=False,
+                          auth_issuer="https://issuer.example",
+                          auth_audience="easyorder",
+                          auth_jwks_url="https://issuer.example/jwks")
+    validate_runtime_config(configured)  # must not raise
+    validate_runtime_config(Settings(_env_file=None, dev_auth_bypass=True))
 
 
 def test_orders_post_invalid_input(client_and_db):

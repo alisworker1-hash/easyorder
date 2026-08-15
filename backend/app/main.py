@@ -8,8 +8,23 @@ from .config import settings
 from .db import create_all
 
 
+def validate_runtime_config(s) -> None:
+    """Fail closed at startup (REVIEW-2026-08-15 #10): without the dev bypass,
+    a half-configured auth provider must be a crash at boot, not an open API."""
+    if s.dev_auth_bypass:
+        return
+    missing = [k for k in ("auth_issuer", "auth_audience", "auth_jwks_url")
+               if not getattr(s, k)]
+    if missing:
+        raise RuntimeError(
+            "refusing to start: auth is not configured "
+            f"({', '.join(missing)} empty). Set them for production, or "
+            "DEV_AUTH_BYPASS=1 strictly for local dev.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    validate_runtime_config(settings)
     # DEV convenience: auto-create tables when running in dev-bypass mode.
     # In real environments, run Alembic migrations instead (see README).
     if settings.dev_auth_bypass:

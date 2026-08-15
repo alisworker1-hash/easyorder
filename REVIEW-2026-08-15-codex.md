@@ -126,3 +126,12 @@ Low:
 
 **Verdict**
 
+
+---
+
+## Outcomes — 2026-08-15 (same day, Ali-directed)
+
+- **#8 (client-declared prices persisted verbatim): FIXED.** `backend/app/catalog.py` is the trusted catalog (repo data.json, integer-cents math, frontend-identical delivery rule); `POST /orders` now recomputes every figure and 422s on unknown id / price / subtotal / total mismatch, persisting only server-computed values (catalog name wins over the client claim).
+- **#10 (auth can start unconfigured): FIXED.** `validate_runtime_config()` runs at lifespan start — missing issuer/audience/JWKS without dev bypass is a refused boot naming the empty fields.
+- Suite: 25 passed (6 new pins: fee-applied + free-delivery happy paths, unknown-id, tampered price, tampered total, fail-closed startup both ways).
+- Still open as go-live gates: #7 checkout route mismatch, Stripe line_items population, and the rest as written above.
